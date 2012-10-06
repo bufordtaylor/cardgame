@@ -36,64 +36,94 @@ class PrintMixin(object):
         print_color_table(card_rows)
 
     def print_hand(self):
-        print_purple('-----------IN GAME--------------')
+        print_purple('---IN GAME')
         self.print_card_hand(self.hand)
+        print
 
     def print_phand(self):
-        print_purple('-----------IN GAME PERS--------------')
+        print_purple('---IN GAME PERS')
         self.print_card_hand(self.phand, game_phand=True)
+        print
 
     def print_user_played_cards(self):
         if len(self.played_user_cards) == 0:
             return
-        print_green('------------%s PLAYED' % self.active_player.name)
+        print_green('---%s PLAYED' % self.active_player.name)
         self.print_card_hand(self.played_user_cards, player=True)
+        print
 
     def print_user_hand(self):
-        print_green('------------%s UNPLAYED' % self.active_player.name)
-        self.print_card_hand(self.active_player.hand, player=True)
+        if len(self.active_player.hand) > 0:
+            print_green('---%s UNPLAYED' % self.active_player.name)
+            self.print_card_hand(self.active_player.hand, player=True)
+            print
 
     def print_user_status(self):
         """
         prints this:
-        +--------+---------------+----------------+
-        | Points | Buying power: | Killing power: |
-        +========+===============+================+
-        |      0 |             0 |              0 |
-        +--------+---------------+----------------+
+        +----------+----------+----------+----------+----------+----------+----------+
+        |  Player  |  Points  |  Buying  | Killing  |   Deck   | Unplayed | Discarde |
+        |          |          |  power   |  power   |          |  cards   | d cards  |
+        +==========+==========+==========+==========+==========+==========+==========+
+        | Player 0 |        0 |        0 |        0 |        5 |        5 |        0 |
+        +----------+----------+----------+----------+----------+----------+----------+
+        | Player 1 |        0 |        0 |        0 |        5 |        5 |        0 |
+        +----------+----------+----------+----------+----------+----------+----------+
         """
-        hand = len(self.active_player.hand)
-        discard = len(self.active_player.discard)
-        deck = len(self.active_player.deck)
-        phand = len(self.active_player.phand)
-        played = len(self.played_user_cards)
-        print_color_table([
-            [
+        player_statuses = []
+        player_statuses.append([
+                'Player',
                 'Points',
                 'Buying power',
                 'Killing power',
                 'Deck',
                 'Unplayed cards',
-                'Discarded cards',
-            ],[
-                self.active_player.points,
-                self.active_player.buying_power,
-                self.active_player.killing_power,
-                deck,
-                hand,
-                discard,
-            ]
+                'Discard cards',
         ])
 
+        for player in self.players:
+            hand = len(player.hand)
+            discard = len(player.discard)
+            deck = len(player.deck)
+            phand = len(player.phand)
+            played = len(self.played_user_cards)
+            if player.name == self.active_player.name:
+                player_info = [
+                    get_color_string(bcolors.GREEN, player.name),
+                    get_color_string(bcolors.GREEN, player.points),
+                    get_color_string(bcolors.GREEN, player.buying_power),
+                    get_color_string(bcolors.GREEN, player.killing_power),
+                    get_color_string(bcolors.GREEN, deck),
+                    get_color_string(bcolors.GREEN, hand),
+                    get_color_string(bcolors.GREEN, discard)
+                ]
+            else:
+                player_info = [
+                    player.name,
+                    player.points,
+                    player.buying_power,
+                    player.killing_power,
+                    deck,
+                    hand,
+                    discard
+                ]
+            player_statuses.append(player_info)
+        print_color_table(player_statuses)
+
     def print_results(self):
+        winner = None
+        winner_total = 0
         for p in self.players:
-            if len(p.hand) > 0:
-                p.deck.append(p.hand.pop())
-            if len(p.phand) > 0:
-                p.deck.append(p.phand.pop())
-            if len(p.discard) > 0:
-                p.deck.append(p.discard.pop())
-            for c in p.deck:
-                p.points += c.worth
+            for card in p.deck:
+                p.points += card.worth
+            for card in p.discard:
+                p.points += card.worth
+            for card in p.hand:
+                p.points += card.worth
+            for card in p.phand:
+                p.points += card.worth
             print p
+            if p.points > winner_total:
+                winner = p.name
+        print 'WINNER!!:  ', winner
 

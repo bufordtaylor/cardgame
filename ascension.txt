@@ -1,0 +1,82 @@
+Ascension - Chronicle of the Godslayer cards in original order: 
+
+Legend: 
+
++*p = Gain Power 
++*r = Gain Runes 
++*h = Gain Honor tokens 
+
+Heroes and Constructs: 
+
+(Hero/Construct-Enlightened/Lifebound/Mechana/Void(+)  - Cost to acquire - Honor value - effects) 
+(+) = Not for Apprentice or Militia. 
+
+Monsters: 
+
+(Monster - Power cost to kill - Effects {RW: Reward(s)} ) 
+
+
+
+Pack 1 (100 cards): 
+
+32x Apprentice (H - +2r) 
+8x Militia (H - +1p) 
+30x Mystic (H - C:3 - 1H - +2r) 
+29x Heavy Infantry (H- C:2 - 1H - +2p) 
+1x Cultist (M - P:2 - Rw: 1h) 
+
+
+
+Pack 2 (100 cards): 
+
+3x Temple Librarian (H-E - C:2 - 1H - Discard a card, If you do, draw two cards) 
+2x Ascetic of the Lidless Eye (H-E - C:5 - 2H - Draw two cards) 
+1x Tablet of Time's Dawn (C-E - C: 5 - 2H - Banish this Construct to take an additional turn after this one) 
+1x Twofold Askara (H-E - C:4 - 2H - Copy the effect of a Hero played this turn) 
+1x The All-Seeing Eye (C-E - C:6 - 2H - Once per turn, you may draw a card) 
+1x Master Dhartha (H-E - C:7 - 3H - Draw three cards) 
+1x Oziah the Peerless (H-E - C:6 - 3H - Defeat a Monster that has 6p or less) 
+3x Seer of the Forked Path (H-E - C:2 - 1H - Draw a card. then you may banish a card in the center row) 
+2x Arha Templar (H-E - C:4 - 3H - Defeat a Monster that has 4p or less) 
+3x Arha Initiate (H-E - C:1 - 1H - Draw a card) 
+1x Cetra, Waever of Stars (H-L - C:7 - 4H - Acquire any Hero. Place it on top of your deck) 
+1x Landtalker (H-L - C:6 - 3H - Gain +3r) 
+2x Runic Lycanthrope (H-L - C:3 - 1H - Gain +2r. If you played a Lifebound Hero this turn, gain +2p) 
+3x Wolf Shaman (H-L - C:3 - 1H - Gain +1r. Draw a card) 
+2x Yggdrasil Staff (C-L - C:4 - 2H - Once per turn, gain +1p. Once per turn, you may spend 4r to gain +3h) 
+2x Flytrap Witch (H-L - C:5 - 2H - Gain +2h. Draw a card) 
+2x Snapdragon (C-L - C:5 - 2H - Once per turn, gain +1r. The first time you play a Lifebound Hero each turn, gain +1h) 
+2x Druids of the Stone Circle (H-L - C:4 - 3H - Acquire a Hero that costs 3r or less. Place it on top of your deck) 
+3x Lifebound Initiate (H-L - C:1 - 1H - Gain +1r and +1h) 
+3x Mechana Initiate (H-M - C:1 - 1H - Gain +1r or +1h) 
+2x Burrower Mark II (C-M - C:3 - 3H - Draw a card the first time you put a Mechana construct into play each turn {Including this one} ) 
+2x Watchmaker's Altar (C-M - C:5 - 5H - Once per turn, gain +1r. You may spent it only to acquire a Mechana Construct) 
+2x Rocket Courier X-99 (C-M - C:4 - 4H - Once per turn, when you acquire another Mechana Construct, you may put it directly into play) 
+2x The Grand Design (C-M - C:6 - 6H - Once per turn, gain +2r. You may spend it only to acquire Mechana Constructs) 
+1x Kor, the Ferromancer (H-M - C:3 - 2H - Gain +2p. Draw a card if you control 2 or more Constructs) 
+2x Avatar Golem (H-M - C:4 - 2H - Gain +2p. Gain +1H for each type of Construct you control. {Types are Enlightened, Mechana, Lifebound, and Void}) 
+2x Reactor Monk (H-M - C:4 - 2H - Gain +2r. The next Construct you acquire this turn costs 1r less) 
+1x Hedron Cannon (C-M - C:8 - 8H - Once per turn, gain +1p for each Mechana Construct you control) 
+1x Hedron Link Device (C-M - C:7 - 7H - You may treat all Constructs as Mechana Constructs) 
+2x Voidthirster (C-V - C:5 - 3H - Once per turn, gain +1p. The first time you defeat a Monster in the center row each turn, gain +1h) 
+3x Shade of the Black Watch (H-V - C:3 - 1H - Gain +2p. You may banish a card in your hand or discard pile) 
+1x Muramasa (C-V - C:7 - 4H - Once per turn, gain +3p) 
+2x Arbiter of the Precipice (H-V - C:4 - 1H - Draw two cards. Then Banish any card in your hand) 
+2x Demon Slayer (H-V - C:4 - 2H - Gain +3p) 
+1x Emri, One with the Void (H-V - C:6 - 3H - Gain +4p) 
+2x Spike Vixen (H-V - C:2 - 1H - Gain +1p. Draw a card) 
+3x Void Initiate (H-V - C:1 - 1H - Gain +1r. You may banish a card in your hand or discard pile) 
+2x Shadow Star (C-V - C:3 - 2H - Once per turn, gain +1p) 
+4x Mistake of Creation (M - P:4 - Rw: Gain +4h. You may banish a card in the center row and/or a card in your discard pile) 
+3x Sea Tyrant (M - P:5 - Rw: Gain +5h. Each opponent must choose a Construct they control and put the rest into their discard pile) 
+3x Mephit (M - P:3 - Rw: Gain +2h. You may banish a card in the center row) 
+1x Avatar of the Fallen (M - P:7 - This monster can't be banished unless defeated. Rw: gain +4h. Acquire or defeat any other card in the center row) 
+3x Wind Tyrant (M - P:5 - Rw: Gain +3h. Gain +3r) 
+4x Corrosive Widow (M - P:4 - Rw: Gain +3h. Each opponent must put a Contruct he controls into his discard pile) 
+4x Samael's Trickster (M - P:3 - Rw: Gain +1h. Gain +1r) 
+2x Earth Tyrant (M - P:6 - Rw: Gain +5r. Draw two cards) 
+3x Tormented Soul (M - P:3 - Rw: Gain +1h. Draw a card) 
+1x Xeron, Duke of Lies (M - P:6 - Rw: Gain +3h. Take a card at random from each opponent's hand and add that card to your hand) 
+
+
+� 2010 Gary Games, Inc. All Rights Reserved.

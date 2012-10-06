@@ -44,11 +44,11 @@ buy_2 = {
 }
 kill_1 = {
         'name': 'cultist',
-        'worth': 1,
+        'worth': 0,
         'card_type': 0,
         'buy': 0,
         'kill': 2,
-        'instant_worth': 0,
+        'instant_worth': 1,
         'instant_buy': 0,
         'instant_kill': 0,
         'abilities': {}

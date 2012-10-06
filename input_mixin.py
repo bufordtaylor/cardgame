@@ -77,6 +77,24 @@ class InputMixin(object):
             print_red(NOT_ENOUGH_KILL)
         print_blue('KILLED CARD %s' % card)
 
+    def handle_play_all_selection(self, selection):
+        os.system(['clear','cls'][os.name == 'nt'])
+        for card_played in self.active_player.hand:
+            self.play_card(card_played)
+            self.played_user_cards.append(card_played)
+            print_blue('PLAYED CARD %s' % card_played)
+        while self.active_player.hand:
+            self.active_player.discard_card(
+                len(self.active_player.hand) - 1
+            )
+
+    def show_played_cards(self, selection):
+        os.system(['clear','cls'][os.name == 'nt'])
+        self.print_user_played_cards()
+        raw_input('Press anything to continue')
+        os.system(['clear','cls'][os.name == 'nt'])
+        return self.handle_inputs()
+
     def handle_card_selection(self, selection):
         try:
             card_played = self.active_player.get_card(int(selection[1:]))
@@ -103,16 +121,24 @@ class InputMixin(object):
         self.print_phand()
         self.print_hand()
         self.print_user_hand()
-        self.print_user_played_cards()
         self.print_user_status()
-        selection = raw_input(
-            'play [c]ard - game [p]ers - [k]ill enemy - [b]uy heroes - [e]nd turn:\n'
-        )
+        input_string = """COMMANDS:
+acquire [p]ersistent
+[k]ill enemy - [b]uy heroes
+play [c]ard - play [a]ll - play pe[r]sistent
+show p[l]ayed cards
+[e]nd turn
+"""
+        selection = raw_input(input_string)
         if selection == 'e':
             self.active_player.end_turn()
             return
         elif selection.startswith('c'):
             return self.handle_card_selection(selection)
+        elif selection.startswith('a'):
+            return self.handle_play_all_selection(selection)
+        elif selection.startswith('l'):
+            return self.show_played_cards(selection)
         elif selection.startswith('k'):
             return self.handle_kill_selection(selection)
         elif selection.startswith('p'):

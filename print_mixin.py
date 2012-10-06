@@ -60,20 +60,21 @@ class PrintMixin(object):
         discard = len(self.active_player.discard)
         deck = len(self.active_player.deck)
         phand = len(self.active_player.phand)
+        played = len(self.played_user_cards)
         print_color_table([
             [
                 'Points',
                 'Buying power',
                 'Killing power',
-                'Total cards',
+                'Deck',
                 'Unplayed cards',
                 'Discarded cards',
             ],[
                 self.active_player.points,
                 self.active_player.buying_power,
                 self.active_player.killing_power,
-                hand + discard + deck + phand,
-                deck,
+                hand + discard + deck + phand + played,
+                hand,
                 discard,
             ]
         ])

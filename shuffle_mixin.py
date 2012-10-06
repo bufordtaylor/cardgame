@@ -14,7 +14,7 @@ class ShuffleMixin(object):
         return card
 
     def discard_card(self, card_idx):
-        return self.play_card(card_idx)
+        self.discard.append(self.get_card(card_idx))
 
     def shuffle_deck(self):
         random.shuffle(self.deck)
@@ -24,12 +24,29 @@ class ShuffleMixin(object):
         self.discard = []
         self.shuffle_deck()
 
+
+class ShuffleGameCardMixin(ShuffleMixin):
+
     def new_hand(self, num_cards=5):
+
         if len(self.deck) < num_cards:
             self.shuffle_discard_into_deck()
 
         for i in xrange(0, num_cards):
             self.draw_card()
 
-class ShuffleGameCardMixin(ShuffleMixin): pass
-class ShufflePlayerCardMixin(ShuffleMixin): pass
+class ShufflePlayerCardMixin(ShuffleMixin):
+
+    def new_hand(self, num_cards=5):
+        print self.hand, self.discard
+        while len(self.hand) > 0:
+            self.discard.append(self.hand.pop())
+        while len(self.game.played_user_cards) > 0:
+            self.discard.append(self.game.played_user_cards.pop())
+        print self.hand, self.discard
+
+        if len(self.deck) < num_cards:
+            self.shuffle_discard_into_deck()
+
+        for i in xrange(0, num_cards):
+            self.draw_card()

@@ -11,6 +11,7 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
     active = False
     buying_power = 0
     killing_power = 0
+    game = None
 
     def __init__(self, name):
         self.name = name
@@ -35,4 +36,7 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
 
     def end_turn(self):
         self.active = False
+        self.new_hand()
+        self.buying_power = 0
+        self.killing_power = 0
 

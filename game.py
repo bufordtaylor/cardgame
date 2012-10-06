@@ -20,6 +20,7 @@ class BaseGame(object):
     points = 0
     turn = 0 # player's turn
     game_active = True
+    debug = True
 
     def __init__(self, points, players=None, deck=None):
         self.points = points
@@ -35,12 +36,14 @@ class BaseGame(object):
 class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
 
     def next_player_turn(self):
+        """change player, get new hand, and start turn"""
         self.turn += 1
         if self.turn >= len(self.players):
             self.turn = 0
-        self.active_player.new_hand()
         self.played_user_cards = []
         self.active_player.start_turn()
+        if self.debug:
+            self.points -= 1
 
     @property
     def active_player(self):
@@ -61,11 +64,9 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
                 print_red('-----GAME OVER------')
                 self.print_results()
 
-    def game_loop(self, debug=False):
+    def game_loop(self):
         while self.game_active:
             self.player_loop()
-            if debug:
-                self.points -= 1
 
 def test_players(num_players=2):
     players = []
@@ -79,8 +80,14 @@ def test_deck():
     return deck.deck
 
 def main():
-    game = Game(points=2)
-    game.game_loop(debug=True)
+    game = Game(points=5)
+    game.played_user_cards = []
+    # calling end_turn here to reset player hand on start up
+    for p in game.players:
+        p.game = game
+        p.end_turn()
+    game.active_player.start_turn()
+    game.game_loop()
 
 if __name__ == '__main__':
     main()

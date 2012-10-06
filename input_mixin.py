@@ -44,8 +44,8 @@ class InputMixin(object):
 
         self.print_hand()
         self.print_user_hand()
-        self.print_user_status()
         self.print_user_played_cards()
+        self.print_user_status()
         selection = raw_input(
             'play [c]ard - [k]ill enemy - [b]uy heroes - [e]nd turn:\n'
         )

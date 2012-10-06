@@ -9,7 +9,6 @@ class ShuffleMixin(object):
 
     def get_card(self, card_idx):
         card = self.hand[card_idx]
-        print type(self), len(self.hand)
         del self.hand[card_idx]
         return card
 
@@ -38,12 +37,10 @@ class ShuffleGameCardMixin(ShuffleMixin):
 class ShufflePlayerCardMixin(ShuffleMixin):
 
     def new_hand(self, num_cards=5):
-        print self.hand, self.discard
         while len(self.hand) > 0:
             self.discard.append(self.hand.pop())
         while len(self.game.played_user_cards) > 0:
             self.discard.append(self.game.played_user_cards.pop())
-        print self.hand, self.discard
 
         if len(self.deck) < num_cards:
             self.shuffle_discard_into_deck()

@@ -7,13 +7,11 @@ class ShuffleMixin(object):
 
         self.hand.append(self.deck.pop())
 
-    def play_card(self, card_idx):
-        try:
-            card = self.hand[card_idx]
-            del self.hand[card_idx]
-            return card
-        except IndexError:
-            return None
+    def get_card(self, card_idx):
+        card = self.hand[card_idx]
+        print type(self), len(self.hand)
+        del self.hand[card_idx]
+        return card
 
     def discard_card(self, card_idx):
         return self.play_card(card_idx)
@@ -32,3 +30,6 @@ class ShuffleMixin(object):
 
         for i in xrange(0, num_cards):
             self.draw_card()
+
+class ShuffleGameCardMixin(ShuffleMixin): pass
+class ShufflePlayerCardMixin(ShuffleMixin): pass

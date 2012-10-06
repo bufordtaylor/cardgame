@@ -1,22 +1,24 @@
 import random
 from deck import PlayerStartDeck, print_card_attrs
-from shuffle_mixin import ShuffleMixin
+from shuffle_mixin import ShufflePlayerCardMixin
 from colors import print_purple
 
 class BasePlayer(object): pass
 
-class Player(BasePlayer, ShuffleMixin):
+class Player(BasePlayer, ShufflePlayerCardMixin):
     name = None
-    deck = [] # player's deck of cards unplayed
-    discard = [] # player's deck of cards played
-    hand = [] # player's hand of cards in play
-    phand = [] # persistant hand (i.e constructs) of cards in play
     points = 0
     active = False
+    buying_power = 0
+    killing_power = 0
 
     def __init__(self, name):
         self.name = name
         self.deck = PlayerStartDeck().deck
+        self.hand = []
+        self.phand = []
+        self.discard = []
+        self.shuffle_deck()
 
     @property
     def is_computer(self):
@@ -27,14 +29,6 @@ class Player(BasePlayer, ShuffleMixin):
             name=self.name,
             points=self.points,
         )
-
-    def print_hand(self):
-        print_purple(
-            '------------PLAYER %s HAND------------------' % self.name
-        )
-        print_card_attrs()
-        for idx,card in enumerate(self.hand):
-            card.print_card(idx, player_card=True)
 
     def start_turn(self):
         self.active = True

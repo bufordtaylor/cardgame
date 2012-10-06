@@ -54,18 +54,36 @@ def print_ordered_cards(card_list):
     print ' '.join(print_list)
 
 def prepare_card_row(card_list):
+    """gathers color strings for each cell"""
     print_list = []
     for color, value in card_list:
         print_list.append(get_color_string(color,value))
     return print_list
 
 def print_color_table(card_rows):
+    """
+    prints something like this, but in colors:
+    +----------------+-----------+-----------+-----+------+-------+
+    | How to Acquire | Card Type | Card Name | Buy | Kill | Worth |
+    +================+===========+===========+=====+======+=======+
+    |        [b]uy:0 |      PERS |    Card 4 |   4 |    4 |     4 |
+    +----------------+-----------+-----------+-----+------+-------+
+    |       [k]ill:1 |   MONSTER |    Card 5 |   5 |    5 |     5 |
+    +----------------+-----------+-----------+-----+------+-------+
+    |        [b]uy:2 |      PERS |    Card 5 |   5 |    5 |     5 |
+    +----------------+-----------+-----------+-----+------+-------+
+    |       [k]ill:3 |   MONSTER |    Card 6 |   6 |    6 |     6 |
+    +----------------+-----------+-----------+-----+------+-------+
+    |        [b]uy:4 |      HERO |    Card 2 |   2 |    2 |     2 |
+    +----------------+-----------+-----------+-----+------+-------+
+    """
 
     tab = tt.Texttable()
 
-    x = [] # The empty row will have the header
     tab.add_rows(card_rows)
-    tab.set_cols_align(['r','r','r','r','r','r'])
-    tab.header(['How to Acquire', 'Card Type', 'Card Name', 'Buy', 'Kill', 'Worth'])
+    align_list = []
+    for x in card_rows[0]:
+        align_list.append('r')
+    tab.set_cols_align(align_list)
     print tab.draw()
 

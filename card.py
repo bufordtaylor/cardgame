@@ -17,6 +17,9 @@ class Card(object):
     abilities = {}
     buy = 0
     kill = 0
+    instant_worth = 0
+    instant_kill = 0
+    instant_buy = 0
 
     def __init__(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -26,11 +29,13 @@ class Card(object):
     def __repr__(self):
         return self.name
 
-    def card_row(self, idx, player_card=False):
-        if not player_card:
-            instruction = (bcolors.WHITE, '%s:%s' % (self.kill_buy_acquire, idx))
-        else:
+    def card_row(self, idx, player_card=False, game_phand=False):
+        if player_card:
             instruction = (bcolors.WHITE, '%s:%s' % ('[c]ard', idx))
+        elif game_phand:
+            instruction = (bcolors.WHITE, '%s:%s' % ('[p]ers', idx))
+        else:
+            instruction = (bcolors.WHITE, '%s:%s' % (self.kill_buy_acquire, idx))
 
         attr_list = [
             instruction,
@@ -40,11 +45,18 @@ class Card(object):
 
         attr_dict = {}
 
-        numbered_attrs = {
-            bcolors.GREEN: 'worth',
-            bcolors.YELLOW: 'buy',
-            bcolors.RED: 'kill'
-        }
+        if not player_card:
+            numbered_attrs = {
+                bcolors.GREEN: 'worth',
+                bcolors.YELLOW: 'buy',
+                bcolors.RED: 'kill'
+            }
+        else:
+            numbered_attrs = {
+                bcolors.GREEN: 'instant_worth',
+                bcolors.YELLOW: 'instant_buy',
+                bcolors.RED: 'instant_kill'
+            }
 
         for k, v in numbered_attrs.iteritems():
             attr_list.append((k, getattr(self, v)))

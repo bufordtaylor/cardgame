@@ -1,6 +1,12 @@
 import random
 from player import Player
-from deck import PlayerStartDeck, testDeck, print_card_attrs
+from card import Card
+from deck import (
+    PlayerStartDeck,
+    testDeck,
+    print_card_attrs,
+    persistant_game_hand,
+)
 from shuffle_mixin import ShuffleGameCardMixin
 from print_mixin import PrintMixin
 from input_mixin import InputMixin
@@ -30,6 +36,7 @@ class BaseGame(object):
         self.played_user_cards = []
         self.test_deck = test_deck()
         self.deck = deck or self.test_deck
+        self.phand = [Card(**c) for c in persistant_game_hand]
         self.shuffle_deck()
         self.new_hand()
 
@@ -51,11 +58,14 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
 
     def play_card(self, card):
         """overriding mixin, process card attrs here"""
-        pass
+        self.active_player.killing_power += card.instant_kill
+        self.active_player.buying_power += card.instant_buy
+        self.active_player.points += card.instant_worth
+        for k,v in card.abilities:
+            print 'abilities!!',k,v
 
     def player_loop(self):
         if self.active_player.active:
-            self.print_results()
             self.handle_inputs()
         else:
             self.next_player_turn()

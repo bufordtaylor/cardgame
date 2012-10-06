@@ -19,13 +19,53 @@ class Deck(object):
     def shuffle(self):
         random.shuffle(self.deck)
 
+
+buy_3 = {
+        'name': 'mystic',
+        'worth': 1,
+        'card_type': 1,
+        'buy': 3,
+        'kill': 0,
+        'instant_worth': 0,
+        'instant_buy': 2,
+        'instant_kill': 0,
+        'abilities': {}
+}
+buy_2 = {
+        'name': 'heavy infantry',
+        'worth': 1,
+        'card_type': 1,
+        'buy': 2,
+        'kill': 0,
+        'instant_worth': 0,
+        'instant_buy': 0,
+        'instant_kill': 2,
+        'abilities': {}
+}
+kill_1 = {
+        'name': 'cultist',
+        'worth': 1,
+        'card_type': 0,
+        'buy': 0,
+        'kill': 2,
+        'instant_worth': 0,
+        'instant_buy': 0,
+        'instant_kill': 0,
+        'abilities': {}
+}
+
+persistant_game_hand = [buy_3, buy_2, kill_1]
+
 starter_cards = [
     {
         'name': 'apprentice',
         'worth': 0,
         'card_type': 1,
-        'buy': 1,
+        'buy': 0,
         'kill': 0,
+        'instant_worth': 0,
+        'instant_buy': 1,
+        'instant_kill': 0,
         'abilities': {}
     },
     {
@@ -33,7 +73,10 @@ starter_cards = [
         'worth': 0,
         'card_type': 1,
         'buy': 0,
-        'kill': 1,
+        'kill': 0,
+        'instant_worth': 0,
+        'instant_buy': 0,
+        'instant_kill': 1,
         'abilities': {}
     },
 ]
@@ -50,6 +93,9 @@ class PlayerStartDeck(Deck):
                     card_type=card_dict['card_type'],
                     buy=card_dict['buy'],
                     kill=card_dict['kill'],
+                    instant_worth=card_dict['instant_worth'],
+                    instant_buy=card_dict['instant_buy'],
+                    instant_kill=card_dict['instant_kill'],
                 )
                 self.deck.append(card)
         super(PlayerStartDeck, self).__init__()

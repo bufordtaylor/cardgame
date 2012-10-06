@@ -1,7 +1,7 @@
 from colors import *
 class PrintMixin(object):
 
-    def print_card_hand(self, hand, player=False):
+    def print_card_hand(self, hand, player=False, game_phand=False):
         """
         organizes data and calls print function:
         +----------------+-----------+-----------+-----+------+-------+
@@ -29,6 +29,8 @@ class PrintMixin(object):
         for idx,card in enumerate(hand):
             if player:
                 card_rows.append(card.card_row(idx, player_card=True))
+            elif game_phand:
+                card_rows.append(card.card_row(idx, game_phand=True))
             else:
                 card_rows.append(card.card_row(idx))
         print_color_table(card_rows)
@@ -37,14 +39,18 @@ class PrintMixin(object):
         print_purple('-----------IN GAME--------------')
         self.print_card_hand(self.hand)
 
+    def print_phand(self):
+        print_purple('-----------IN GAME PERS--------------')
+        self.print_card_hand(self.phand, game_phand=True)
+
     def print_user_played_cards(self):
         if len(self.played_user_cards) == 0:
             return
-        print_purple('------------%s PLAYED' % self.active_player.name)
+        print_green('------------%s PLAYED' % self.active_player.name)
         self.print_card_hand(self.played_user_cards, player=True)
 
     def print_user_hand(self):
-        print_purple('------------%s UNPLAYED' % self.active_player.name)
+        print_green('------------%s UNPLAYED' % self.active_player.name)
         self.print_card_hand(self.active_player.hand, player=True)
 
     def print_user_status(self):
@@ -73,7 +79,7 @@ class PrintMixin(object):
                 self.active_player.points,
                 self.active_player.buying_power,
                 self.active_player.killing_power,
-                hand + discard + deck + phand + played,
+                deck,
                 hand,
                 discard,
             ]
@@ -81,5 +87,13 @@ class PrintMixin(object):
 
     def print_results(self):
         for p in self.players:
+            if len(p.hand) > 0:
+                p.deck.append(p.hand.pop())
+            if len(p.phand) > 0:
+                p.deck.append(p.phand.pop())
+            if len(p.discard) > 0:
+                p.deck.append(p.discard.pop())
+            for c in p.deck:
+                p.points += c.worth
             print p
 

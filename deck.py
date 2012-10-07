@@ -10,6 +10,14 @@ from colors import (
     print_white, print_blue, print_purple, print_ordered_cards,
 )
 
+from card_constants import (
+    deck_one,
+    ENLIGHTENED,
+    MECHANA,
+    VOID,
+    LIFEBOUND,
+)
+
 class Deck(object):
     name = None
 
@@ -29,7 +37,6 @@ buy_3 = {
         'instant_worth': 0,
         'instant_buy': 2,
         'instant_kill': 0,
-        'abilities': {}
 }
 buy_2 = {
         'name': 'heavy infantry',
@@ -40,7 +47,6 @@ buy_2 = {
         'instant_worth': 0,
         'instant_buy': 0,
         'instant_kill': 2,
-        'abilities': {}
 }
 kill_1 = {
         'name': 'cultist',
@@ -51,7 +57,6 @@ kill_1 = {
         'instant_worth': 1,
         'instant_buy': 0,
         'instant_kill': 0,
-        'abilities': {}
 }
 
 persistant_game_hand = [buy_3, buy_2, kill_1]
@@ -66,7 +71,6 @@ starter_cards = [
         'instant_worth': 0,
         'instant_buy': 1,
         'instant_kill': 0,
-        'abilities': {}
     },
     {
         'name': 'militia',
@@ -77,7 +81,6 @@ starter_cards = [
         'instant_worth': 0,
         'instant_buy': 0,
         'instant_kill': 1,
-        'abilities': {}
     },
 ]
 
@@ -115,6 +118,15 @@ class testDeck(Deck):
             )
             self.deck.append(card)
         super(testDeck, self).__init__()
+
+class RealDeck(Deck):
+    def __init__(self):
+        self.deck = []
+        for obj in deck_one:
+            for i in xrange(obj['count']+1):
+                self.deck.append(Card(**obj['card']))
+        super(RealDeck, self).__init__()
+
 
 CARD_ATTRIBUTES = {
     bcolors.PURPLE: 'type',

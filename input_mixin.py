@@ -8,6 +8,7 @@ from deck import (
 )
 
 CANNOT_KILL_THIS_CARD = 'You cannot kill this card, it is a %s'
+CANNOT_BUY_THIS_CARD = 'You cannot buy this card, it is a monster'
 NOT_ENOUGH_KILL = 'Not enough kill'
 NOT_ENOUGH_BUY = 'Not enough buy'
 INVALID_SELECTION = 'No idea what you are doing, but it is wrong.'
@@ -20,8 +21,25 @@ class InputMixin(object):
         print 'computer is doing shit'
         return
 
-    def sanitize_selection(self, selection):
-        return card_played
+    def sanitize(self, selection, persistent=False):
+        try:
+            card_idx = int(selection[1:])
+            if persistent:
+                card = self.phand[card_idx]
+            else:
+                card = self.hand[card_idx]
+        except (ValueError, IndexError):
+            card = None
+            card_idx = None
+            os.system(['clear','cls'][os.name == 'nt'])
+
+        if not card:
+            if persistent:
+                print_red(INVALID_CARD % (len(self.phand) - 1))
+            else:
+                print_red(INVALID_CARD % (len(self.hand) - 1))
+
+        return card, card_idx
 
     def handle_gamephand_selection(self, selection):
         try:
@@ -71,19 +89,49 @@ class InputMixin(object):
 
         if self.active_player.killing_power >= card.kill:
             self.active_player.points += card.instant_worth
+            self.active_player.killing_power -= card.Kill
             self.discard_card(card_idx)
             self.draw_card()
+            print_blue('KILLED CARD %s' % card)
         else:
             print_red(NOT_ENOUGH_KILL)
-        print_blue('KILLED CARD %s' % card)
+
+    def handle_buy_selection(self, selection):
+        try:
+            card_idx = int(selection[1:])
+            card = self.hand[card_idx]
+        except (ValueError, IndexError):
+            card = None
+            os.system(['clear','cls'][os.name == 'nt'])
+
+        if not card:
+            print_red(INVALID_CARD % (len(self.hand) - 1))
+            return self.handle_inputs()
+        if card.card_type == CARD_TYPE_MONSTER:
+            print_red(CANNOT_BUY_THIS_CARD)
+            return self.handle_inputs()
+        os.system(['clear','cls'][os.name == 'nt'])
+
+        if self.active_player.buying_power >= card.buy:
+            # get_card removes it from the game's hand
+            card= self.get_card(card_idx)
+            self.active_player.discard.append(card)
+            self.active_player.buying_power -= card.buy
+            print_blue('BOUGHT CARD %s' % card)
+            self.draw_card()
+        else:
+            print_red(NOT_ENOUGH_BUY)
+
 
     def handle_play_all_selection(self, selection):
         os.system(['clear','cls'][os.name == 'nt'])
-        for card_played in self.active_player.hand:
+        while self.active_player.hand:
+            card_played = self.active_player.hand[
+                len(self.active_player.hand) - 1
+            ]
             self.play_card(card_played)
             self.played_user_cards.append(card_played)
             print_blue('PLAYED CARD %s' % card_played)
-        while self.active_player.hand:
             self.active_player.discard_card(
                 len(self.active_player.hand) - 1
             )
@@ -122,13 +170,7 @@ class InputMixin(object):
         self.print_hand()
         self.print_user_hand()
         self.print_user_status()
-        input_string = """COMMANDS:
-acquire [p]ersistent
-[k]ill enemy - [b]uy heroes
-play [c]ard - play [a]ll - play pe[r]sistent
-show p[l]ayed cards
-[e]nd turn
-"""
+        input_string = "COMMANDS: acquire [p]ersistent | [k]ill enemy | [b]uy heroes | play [c]ard | play [a]ll | play pe[r]sistent | show p[l]ayed cards | [e]nd turn "
         selection = raw_input(input_string)
         if selection == 'e':
             self.active_player.end_turn()
@@ -140,9 +182,11 @@ show p[l]ayed cards
         elif selection.startswith('l'):
             return self.show_played_cards(selection)
         elif selection.startswith('k'):
-            return self.handle_kill_selection(selection)
+            return self.defeat_or_acquire(selection)
+        elif selection.startswith('b'):
+            return self.defeat_or_acquire(selection)
         elif selection.startswith('p'):
-            return self.handle_gamephand_selection(selection)
+            return self.defeat_or_acquire(selection, persistent=True)
         else:
             print_red(INVALID_SELECTION)
         print_blue('Press anykey to continue')

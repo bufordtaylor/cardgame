@@ -9,17 +9,26 @@ from deck import (
     CARD_TYPE_PERSISTENT,
 )
 
+from card_constants import (
+    ENLIGHTENED,
+    VOID,
+    MECHANA,
+    LIFEBOUND,
+)
+
 
 class Card(object):
     name = None
     worth = 0
     card_type = None
-    abilities = {}
+    faction = None
+    abilities = None
     buy = 0
     kill = 0
     instant_worth = 0
     instant_kill = 0
     instant_buy = 0
+
 
     def __init__(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -40,25 +49,23 @@ class Card(object):
         attr_list = [
             instruction,
             (bcolors.PURPLE, self.card_type_string),
+            self.card_faction,
             (bcolors.BLUE, self.name),
         ]
 
         attr_dict = {}
 
-        if not player_card:
-            numbered_attrs = {
-                bcolors.GREEN: 'worth',
-                bcolors.YELLOW: 'buy',
-                bcolors.RED: 'kill'
-            }
-        else:
-            numbered_attrs = {
-                bcolors.GREEN: 'instant_worth',
-                bcolors.YELLOW: 'instant_buy',
-                bcolors.RED: 'instant_kill'
-            }
+        numbered_attrs = [
+            (bcolors.YELLOW, 'buy'),
+            (bcolors.RED, 'kill'),
+            (bcolors.GREEN, 'worth'),
+            (bcolors.YELLOW, 'instant_buy'),
+            (bcolors.RED, 'instant_kill'),
+            (bcolors.GREEN, 'instant_worth'),
+            (bcolors.BLUE, 'abilities'),
+        ]
 
-        for k, v in numbered_attrs.iteritems():
+        for k, v in numbered_attrs:
             attr_list.append((k, getattr(self, v)))
         return prepare_card_row(attr_list)
 
@@ -71,6 +78,19 @@ class Card(object):
             str = 'HERO'
         elif self.is_persistent:
             str = 'PERS'
+        return str
+
+    @property
+    def card_faction(self):
+        str = (bcolors.RED, 'MONSTER')
+        if self.faction == VOID:
+            str = (bcolors.PURPLE, 'VOID')
+        elif self.faction == MECHANA:
+            str = (bcolors.YELLOW, 'MECHANA')
+        elif self.faction == ENLIGHTENED:
+            str = (bcolors.BLUE, 'ENLIGHTENED')
+        elif self.faction == LIFEBOUND:
+            str = (bcolors.GREEN, 'LIFEBOUND')
         return str
 
     @property

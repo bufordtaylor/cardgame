@@ -21,11 +21,17 @@ class PrintMixin(object):
         card_rows = [[
                 'Use',
                 'Card Type',
+                'Faction',
                 'Card Name',
                 'Buy',
                 'Kill',
                 'Worth',
+                'Instant Buy',
+                'Instant Kill',
+                'Instant Worth',
+                'Abilities',
         ]]
+        width = [9,15,10,30,13,13,13,13,13,13,50]
         for idx,card in enumerate(hand):
             if player:
                 card_rows.append(card.card_row(idx, player_card=True))
@@ -33,15 +39,13 @@ class PrintMixin(object):
                 card_rows.append(card.card_row(idx, game_phand=True))
             else:
                 card_rows.append(card.card_row(idx))
-        print_color_table(card_rows)
+        print_color_table(card_rows, width=width)
 
     def print_hand(self):
-        print_purple('---IN GAME')
         self.print_card_hand(self.hand)
         print
 
     def print_phand(self):
-        print_purple('---IN GAME PERS')
         self.print_card_hand(self.phand, game_phand=True)
         print
 
@@ -114,14 +118,19 @@ class PrintMixin(object):
         winner = None
         winner_total = 0
         for p in self.players:
+            print p.name
             for card in p.deck:
                 p.points += card.worth
+                if card.worth > 0: print '...', card.name, card.worth
             for card in p.discard:
                 p.points += card.worth
+                if card.worth > 0: print '...', card.name, card.worth
             for card in p.hand:
                 p.points += card.worth
+                if card.worth > 0: print '...', card.name, card.worth
             for card in p.phand:
                 p.points += card.worth
+                if card.worth > 0: print '...', card.name, card.worth
             print p
             if p.points > winner_total:
                 winner = p.name

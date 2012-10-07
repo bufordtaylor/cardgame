@@ -60,7 +60,7 @@ def prepare_card_row(card_list):
         print_list.append(get_color_string(color,value))
     return print_list
 
-def print_color_table(card_rows):
+def print_color_table(card_rows, width=None):
     """
     prints something like this, but in colors:
     +----------------+-----------+-----------+-----+------+-------+
@@ -79,6 +79,8 @@ def print_color_table(card_rows):
     """
 
     tab = tt.Texttable()
+    if width:
+        tab.set_cols_width(width)
 
     tab.add_rows(card_rows)
     align_list = []

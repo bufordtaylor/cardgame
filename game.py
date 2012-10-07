@@ -4,16 +4,27 @@ from card import Card
 from deck import (
     PlayerStartDeck,
     testDeck,
+    RealDeck,
     print_card_attrs,
     persistant_game_hand,
 )
 from shuffle_mixin import ShuffleGameCardMixin
 from print_mixin import PrintMixin
-from input_mixin import InputMixin
+from input_mixin import (
+    InputMixin,
+    NOT_ENOUGH_BUY,
+    NOT_ENOUGH_KILL,
+)
 
 from colors import (
     print_yellow, print_red, print_blue,
     print_green, print_purple,print_color_table,
+)
+
+from deck import (
+    CARD_TYPE_MONSTER,
+    CARD_TYPE_HERO,
+    CARD_TYPE_PERSISTENT,
 )
 
 import os
@@ -61,8 +72,50 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
         self.active_player.killing_power += card.instant_kill
         self.active_player.buying_power += card.instant_buy
         self.active_player.points += card.instant_worth
-        for k,v in card.abilities:
-            print 'abilities!!',k,v
+        if card.abilities:
+            print card.abilities
+
+    def defeat_or_acquire(self, selection, persistent=False):
+        card, card_idx = self.sanitize(selection, persistent)
+        if not card:
+            return self.handle_inputs()
+        os.system(['clear','cls'][os.name == 'nt'])
+
+        if card.card_type == CARD_TYPE_MONSTER:
+            if self.active_player.killing_power >= card.kill:
+                self.defeat_card(card, persistent)
+                print_blue('KILLED CARD %s' % card)
+            else:
+                print_red(NOT_ENOUGH_KILL)
+                return self.handle_inputs()
+        else:
+            if self.active_player.buying_power >= card.buy:
+                card= self.get_card(card_idx, persistent)
+                self.acquire_card(card, persistent)
+                print_blue('BOUGHT CARD %s' % card)
+            else:
+                print_red(NOT_ENOUGH_BUY)
+                return self.handle_inputs()
+
+    def check_abilities(self, action, card=None):
+        """loop through player phand to play abilities"""
+        print 'not ready yet', action, card
+
+    def acquire_card(self, card, persistent):
+        # place acquired card in player's discard deck
+        self.active_player.discard.append(card)
+        self.active_player.buying_power -= card.buy
+        if not persistent:
+            self.draw_card()
+        self.check_abilities('acquired', card=card)
+
+    def defeat_card(self, card, persistent):
+        self.active_player.points += card.instant_worth
+        self.active_player.killing_power -= card.kill
+        if not persistent:
+            self.discard_card(card_idx)
+            self.draw_card()
+        self.check_abilities('defeated', card=card)
 
     def player_loop(self):
         if self.active_player.active:
@@ -90,7 +143,8 @@ def test_deck():
     return deck.deck
 
 def main():
-    game = Game(points=5)
+    deck = RealDeck().deck
+    game = Game(deck=deck, points=5)
     game.played_user_cards = []
     # calling end_turn here to reset player hand on start up
     for p in game.players:

@@ -3,19 +3,7 @@ from colors import (
     bcolors, print_dict, print_green,prepare_card_row,
     print_white, print_blue, print_purple, print_ordered_cards,
 )
-from deck import (
-    CARD_TYPE_MONSTER,
-    CARD_TYPE_HERO,
-    CARD_TYPE_PERSISTENT,
-)
-
-from card_constants import (
-    ENLIGHTENED,
-    VOID,
-    MECHANA,
-    LIFEBOUND,
-)
-
+from constants import *
 
 class Card(object):
     name = None
@@ -78,6 +66,8 @@ class Card(object):
             str = 'HERO'
         elif self.is_persistent:
             str = 'PERS'
+        elif self.is_starting_card:
+            str = 'STARTING'
         return str
 
     @property
@@ -91,6 +81,8 @@ class Card(object):
             str = (bcolors.BLUE, 'ENLIGHTENED')
         elif self.faction == LIFEBOUND:
             str = (bcolors.GREEN, 'LIFEBOUND')
+        elif self.is_starting_card:
+            str = (bcolors.WHITE, 'STARTING')
         return str
 
     @property
@@ -115,4 +107,8 @@ class Card(object):
     @property
     def is_hero(self):
         return self.card_type == CARD_TYPE_HERO
+
+    @property
+    def is_starting_card(self):
+        return self.faction == STARTING
 

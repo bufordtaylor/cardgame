@@ -1,22 +1,13 @@
 import random
 
-CARD_TYPE_MONSTER = 0
-CARD_TYPE_HERO = 1
-CARD_TYPE_PERSISTENT = 2
-
+from constants import *
 from card import Card
 from colors import (
     bcolors, print_dict, print_green,prepare_card_row,
     print_white, print_blue, print_purple, print_ordered_cards,
 )
 
-from card_constants import (
-    deck_one,
-    ENLIGHTENED,
-    MECHANA,
-    VOID,
-    LIFEBOUND,
-)
+from card_constants import deck_one
 
 class Deck(object):
     name = None
@@ -37,6 +28,7 @@ buy_3 = {
         'instant_worth': 0,
         'instant_buy': 2,
         'instant_kill': 0,
+        'faction': STARTING,
 }
 buy_2 = {
         'name': 'heavy infantry',
@@ -47,6 +39,7 @@ buy_2 = {
         'instant_worth': 0,
         'instant_buy': 0,
         'instant_kill': 2,
+        'faction': STARTING,
 }
 kill_1 = {
         'name': 'cultist',
@@ -57,6 +50,7 @@ kill_1 = {
         'instant_worth': 1,
         'instant_buy': 0,
         'instant_kill': 0,
+        'faction': STARTING,
 }
 
 persistant_game_hand = [buy_3, buy_2, kill_1]
@@ -71,6 +65,7 @@ starter_cards = [
         'instant_worth': 0,
         'instant_buy': 1,
         'instant_kill': 0,
+        'faction': STARTING,
     },
     {
         'name': 'militia',
@@ -81,6 +76,7 @@ starter_cards = [
         'instant_worth': 0,
         'instant_buy': 0,
         'instant_kill': 1,
+        'faction': STARTING,
     },
 ]
 
@@ -99,6 +95,7 @@ class PlayerStartDeck(Deck):
                     instant_worth=card_dict['instant_worth'],
                     instant_buy=card_dict['instant_buy'],
                     instant_kill=card_dict['instant_kill'],
+                    faction=card_dict['faction'],
                 )
                 self.deck.append(card)
         super(PlayerStartDeck, self).__init__()

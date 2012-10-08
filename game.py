@@ -1,6 +1,9 @@
 import random
+import os
 from player import Player
 from card import Card
+from abilities_constants import *
+from constants import *
 from deck import (
     PlayerStartDeck,
     testDeck,
@@ -10,24 +13,15 @@ from deck import (
 )
 from shuffle_mixin import ShuffleGameCardMixin
 from print_mixin import PrintMixin
-from input_mixin import (
-    InputMixin,
-    NOT_ENOUGH_BUY,
-    NOT_ENOUGH_KILL,
-)
+from abilities_mixin import AbilitiesMixin
+from input_mixin import InputMixin
 
 from colors import (
     print_yellow, print_red, print_blue,
     print_green, print_purple,print_color_table,
 )
 
-from deck import (
-    CARD_TYPE_MONSTER,
-    CARD_TYPE_HERO,
-    CARD_TYPE_PERSISTENT,
-)
 
-import os
 
 
 # created for mixin use
@@ -38,6 +32,9 @@ class BaseGame(object):
     turn = 0 # player's turn
     game_active = True
     debug = True
+    action = ACTION_NORMAL #normal pay, or selection card to do something with it (banish, copy)
+    selected_card = None #card being banished, copied, etc. Used for testing, not displayed
+    debug_counter = 0
 
     def __init__(self, points, players=None, deck=None):
         self.points = points
@@ -51,7 +48,13 @@ class BaseGame(object):
         self.shuffle_deck()
         self.new_hand()
 
-class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
+class Game(
+        BaseGame,
+        ShuffleGameCardMixin,
+        PrintMixin,
+        InputMixin,
+        AbilitiesMixin
+    ):
 
     def next_player_turn(self):
         """change player, get new hand, and start turn"""
@@ -67,23 +70,127 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
     def active_player(self):
         return self.players[self.turn]
 
-    def play_card(self, card):
-        """overriding mixin, process card attrs here"""
+
+    def must_copy_card(self):
+        self.can_banish_card(
+            num=1,
+            where=WHERE_PLAYED,
+            must_banish=True,
+            copy=True,
+        )
+
+    def can_discard_card(self, num, must_discard=False):
+        self.can_banish_card(
+            num,
+            where=WHERE_HAND,
+            must_banish=must_discard,
+            discard=True
+        )
+
+    def must_banish_card(self, num, where):
+        self.can_banish_card(num, where, must_banish=True)
+
+    def can_banish_card(self,
+        num,
+        where,
+        must_banish=False,
+        discard=False,
+        copy=False,
+    ):
+        for x in xrange(num):
+            if discard:
+                self.action = ACTION_DISCARD
+            elif copy:
+                self.action = ACTION_COPY
+            else:
+                self.action = ACTION_BANISH
+            card, card_idx = self.handle_banish_inputs(
+                where, must_banish=must_banish,
+            )
+            # they've chosen [n]one here, just move on
+            if not card:
+                self.selected_card = None
+                return
+
+            if where == WHERE_CENTER:
+                # get_card removes it from deck hand
+                card = self.get_card(card_idx)
+                self.selected_card = card
+                # banish to game discard deck ACTION_BANISH
+                self.discard.append(card)
+                self.draw_card()
+            elif where == WHERE_PLAYED:
+                # used in ACTION_COPY
+                self.selected_card = card
+                self.play_user_card_effects(card)
+            elif where == WHERE_HAND:
+                # get_card removes it from player hand
+                card = self.active_player.get_card(card_idx)
+                self.selected_card = card
+                if self.action == ACTION_DISCARD:
+                    # move card to player's discard deck
+                    self.active_player.discard.append(card)
+                else:
+                    # move card to game discard deck ACTION_BANISH
+                    self.discard.append(card)
+            elif where == WHERE_PERSISTENT:
+                # get_card removes it from player hand ACTION_BANISH
+                card = self.active_player.get_card(card_idx, persistent=True)
+                self.selected_card = card
+                # move card from phand to player discard deck
+                self.active_player.discard.append(card)
+
+
+    def play_abilities(self, card):
+        if not card.abilities:
+            return
+
+        self.selected_card = None
+        getattr(self,ABILITY_MAP.get(card.abilities))()
+        self.action = ACTION_NORMAL
+
+    def play_all_user_cards(self, selection):
+        if len(self.active_player.hand) == 0:
+            print_red('No cards left to play')
+            os.system(['clear','cls'][os.name == 'nt'])
+        # play all cards until therea re no more
+        while self.active_player.hand:
+            self.play_user_card(selection='c0')
+
+    def play_user_card(self, selection, persistent=False):
+        card, card_idx = self.sanitize(selection, persistent, player_card=True)
+        if not card:
+            return self.handle_inputs()
+        os.system(['clear','cls'][os.name == 'nt'])
+
+        # get_card removes card from player hand list
+        card = self.active_player.get_card(card_idx, persistent)
+        if card.card_type == CARD_TYPE_PERSISTENT:
+            self.active_player.phand.append(card)
+        else:
+            self.played_user_cards.append(card)
+        self.play_user_card_effects(card)
+        return card
+
+    def play_user_card_effects(self, card):
         self.active_player.killing_power += card.instant_kill
         self.active_player.buying_power += card.instant_buy
         self.active_player.points += card.instant_worth
-        if card.abilities:
-            print card.abilities
+        print_blue('PLAYED CARD %s' % card)
+        self.play_abilities(card)
+
 
     def defeat_or_acquire(self, selection, persistent=False):
         card, card_idx = self.sanitize(selection, persistent)
         if not card:
             return self.handle_inputs()
         os.system(['clear','cls'][os.name == 'nt'])
+        moved_card = None
 
         if card.card_type == CARD_TYPE_MONSTER:
             if self.active_player.killing_power >= card.kill:
-                self.defeat_card(card, persistent)
+                card= self.get_card(card_idx, persistent)
+                moved_card = self.defeat_card(card, persistent)
                 print_blue('KILLED CARD %s' % card)
             else:
                 print_red(NOT_ENOUGH_KILL)
@@ -91,11 +198,12 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
         else:
             if self.active_player.buying_power >= card.buy:
                 card= self.get_card(card_idx, persistent)
-                self.acquire_card(card, persistent)
+                moved_card = self.acquire_card(card, persistent)
                 print_blue('BOUGHT CARD %s' % card)
             else:
                 print_red(NOT_ENOUGH_BUY)
                 return self.handle_inputs()
+        return moved_card
 
     def check_abilities(self, action, card=None):
         """loop through player phand to play abilities"""
@@ -108,14 +216,16 @@ class Game(BaseGame, ShuffleGameCardMixin, PrintMixin, InputMixin):
         if not persistent:
             self.draw_card()
         self.check_abilities('acquired', card=card)
+        return card
 
     def defeat_card(self, card, persistent):
         self.active_player.points += card.instant_worth
         self.active_player.killing_power -= card.kill
         if not persistent:
-            self.discard_card(card_idx)
+            self.discard.append(card)
             self.draw_card()
         self.check_abilities('defeated', card=card)
+        return card
 
     def player_loop(self):
         if self.active_player.active:
@@ -144,7 +254,7 @@ def test_deck():
 
 def main():
     deck = RealDeck().deck
-    game = Game(deck=deck, points=5)
+    game = Game(deck=deck, points=15)
     game.played_user_cards = []
     # calling end_turn here to reset player hand on start up
     for p in game.players:

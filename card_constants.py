@@ -1,14 +1,5 @@
 from abilities_constants import *
-from deck import (
-    CARD_TYPE_MONSTER,
-    CARD_TYPE_HERO,
-    CARD_TYPE_PERSISTENT,
-)
-
-ENLIGHTENED = 0
-VOID = 1
-MECHANA = 2
-LIFEBOUND = 3
+from constants import *
 
 deck_one = [
     {

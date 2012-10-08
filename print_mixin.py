@@ -62,6 +62,19 @@ class PrintMixin(object):
             self.print_card_hand(self.active_player.hand, player=True)
             print
 
+    def print_user_phand(self):
+        if len(self.active_player.phand) > 0:
+            print_green('---%s PERSISTENTS IN PLAY' % self.active_player.name)
+            self.print_card_hand(self.active_player.phand, player=True)
+            print
+
+    def show_played_cards(self, selection):
+        os.system(['clear','cls'][os.name == 'nt'])
+        self.print_user_played_cards()
+        raw_input('Press anything to continue')
+        os.system(['clear','cls'][os.name == 'nt'])
+        return self.handle_inputs()
+
     def print_user_status(self):
         """
         prints this:
@@ -133,6 +146,7 @@ class PrintMixin(object):
                 if card.worth > 0: print '...', card.name, card.worth
             print p
             if p.points > winner_total:
+                winner_total = p.points
                 winner = p.name
         print 'WINNER!!:  ', winner
 

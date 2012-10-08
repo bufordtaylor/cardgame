@@ -1,9 +1,15 @@
 import random
 class ShuffleMixin(object):
 
+    def draw_cards(self, num):
+        for x in xrange(num):
+            self.draw_card()
+
     def draw_card(self):
         if len(self.deck) == 0:
             self.shuffle_discard_into_deck()
+            if len(self.deck) == 0:
+                return
 
         self.hand.append(self.deck.pop())
 

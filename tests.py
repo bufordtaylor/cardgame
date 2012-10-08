@@ -196,6 +196,15 @@ class TestGame(unittest.TestCase):
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
         self.assertTrue(len(self.game.active_player.hand), 6)
 
+    def test_instant_ability_copy_no_card(self):
+        # emulate other card
+        self._fake_user_hand(COPY_EFFECT)
+        card = self.game.play_user_card('c0')
+        selected_card = self.game.selected_card
+        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
+        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
+        self.assertTrue(len(self.game.active_player.hand), 4)
+
     def test_instant_ability_copy(self):
         # set up copy with another card
         self._fake_user_hand(IF_DISCARD_DRAW_TWO)

@@ -60,14 +60,30 @@ class InputMixin(object):
         played_card=False
         persistent=False
         if where == WHERE_CENTER:
+            if len(self.hand) == 0:
+                return None, None
+            elif len(self.hand) == 1:
+                return self.hand[0]
             self.print_hand()
         elif where == WHERE_HAND:
+            if len(self.active_player.hand) == 0:
+                return None, None
+            elif len(self.active_player.hand) == 1:
+                return self.active_player.hand[0], 0
             self.print_user_hand()
             player_card=True
         elif where == WHERE_PLAYED:
+            if len(self.played_user_cards) == 0:
+                return None, None
+            elif len(self.played_user_cards) == 1:
+                return self.played_user_cards[0], 0
             self.print_user_played_cards()
             played_card=True
         elif where == WHERE_PERSISTENT:
+            if len(self.active_player.phand) == 0:
+                return None, None
+            elif len(self.active_player.phand) == 1:
+                return self.active_player.phand[0], 0
             self.print_user_phand()
             player_card=True
             persistent=True

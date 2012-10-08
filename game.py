@@ -35,6 +35,7 @@ class BaseGame(object):
     action = ACTION_NORMAL #normal pay, or selection card to do something with it (banish, copy)
     selected_card = None #card being banished, copied, etc. Used for testing, not displayed
     debug_counter = 0
+    active_card = None
 
     def __init__(self, points, players=None, deck=None):
         self.points = points
@@ -42,6 +43,7 @@ class BaseGame(object):
         self.discard = []
         self.hand = []
         self.played_user_cards = []
+        self.active_card = []
         self.test_deck = test_deck()
         self.deck = deck or self.test_deck
         self.phand = [Card(**c) for c in persistant_game_hand]
@@ -165,11 +167,13 @@ class Game(
 
         # get_card removes card from player hand list
         card = self.active_player.get_card(card_idx, persistent)
+        self.active_card.append(card)
+        self.play_user_card_effects(card)
         if card.card_type == CARD_TYPE_PERSISTENT:
             self.active_player.phand.append(card)
         else:
             self.played_user_cards.append(card)
-        self.play_user_card_effects(card)
+        self.active_card = []
         return card
 
     def play_user_card_effects(self, card):

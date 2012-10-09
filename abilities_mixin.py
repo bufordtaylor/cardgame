@@ -13,11 +13,11 @@ class AbilitiesMixin(object):
 
     def draw_2_then_banish_1_hand(self):
         self.draw_2()
-        self.must_banish_card(num=1, where=WHERE_HAND)
+        self.must_banish_card(num=1, where=WHERE_PLAYER_HAND)
 
     def draw_1_banish_center(self):
         self.draw_1()
-        self.can_banish_card(num=1, where=WHERE_CENTER)
+        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def draw_1_if_control_gt_2_constructs(self):
         persistents = 0

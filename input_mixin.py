@@ -53,19 +53,21 @@ class InputMixin(object):
 
         return card, card_idx
 
-
-    def handle_banish_inputs(self, where, must_banish):
-
+    def handle_select_inputs(self, where, must):
+        """
+        select card from a location in play,
+        must indicates that they must select a card
+        """
         player_card=False
         played_card=False
         persistent=False
-        if where == WHERE_CENTER:
+        if where == WHERE_GAME_HAND:
             if len(self.hand) == 0:
                 return None, None
             elif len(self.hand) == 1:
                 return self.hand[0]
             self.print_hand()
-        elif where == WHERE_HAND:
+        elif where == WHERE_PLAYER_HAND:
             if len(self.active_player.hand) == 0:
                 return None, None
             elif len(self.active_player.hand) == 1:
@@ -87,8 +89,8 @@ class InputMixin(object):
             self.print_user_phand()
             player_card=True
             persistent=True
-        selection = self.active_player.make_selection(must=must_banish)
-        if selection == 'n' and not must_banish:
+        selection = self.active_player.make_selection(must=must)
+        if selection == 'n' and not must:
             return None, None
 
         card, card_idx = self.sanitize(
@@ -102,11 +104,10 @@ class InputMixin(object):
             if self.debug_counter > 5:
                 raise 'something is wrong'
                 return None, None
-            return self.handle_banish_inputs(where, must_banish)
+            return self.handle_select_inputs(where, must_banish)
         os.system(['clear','cls'][os.name == 'nt'])
         self.debug_counter = 0
         return card, card_idx
-
 
     def handle_inputs(self):
         self.print_user_status()

@@ -197,7 +197,7 @@ class TestGame(unittest.TestCase):
         self.assertTrue(len(self.game.active_player.hand), 6)
 
     def test_instant_ability_copy_no_card(self):
-        # emulate other card
+        # no card to emulate, so it just plays it
         self._fake_user_hand(COPY_EFFECT)
         card = self.game.play_user_card('c0')
         selected_card = self.game.selected_card

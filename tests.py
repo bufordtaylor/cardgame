@@ -1,4 +1,5 @@
 import unittest
+import random
 from game import Game
 from deck import RealDeck
 from player import Computer
@@ -69,6 +70,7 @@ class TestGame(unittest.TestCase):
 
         killing_power = self.game.active_player.killing_power
         buying_power = self.game.active_player.buying_power
+        self.game.check_cards_eligibility()
 
         # acquire a persistent game card
         card = self.game.defeat_or_acquire(selection='p0', persistent=True)
@@ -88,6 +90,11 @@ class TestGame(unittest.TestCase):
         # appropriate points reduced from player killing power
         #
 
+    def _get_card(self, name):
+        for idx, c in enumerate(self.deck):
+            if c.name == name:
+                return c
+
     def _fake_hand(self, card_name):
         # force card at 0 position, fill the rest of the hand so no collisions
         fake_cards = [None]
@@ -102,6 +109,7 @@ class TestGame(unittest.TestCase):
         self.game.hand[0] = action_card
         for i in xrange(1,5):
             self.game.hand[i] = fake_cards[i]
+        return action_card
 
     def _fake_user_hand(self, ability_name, secondary_ability=None):
         action_card = None
@@ -117,6 +125,12 @@ class TestGame(unittest.TestCase):
         if secondary_ability:
             self.game.active_player.hand[1] = secondardy_card
 
+    def test_game_tokens(self):
+        self.game.set_token('test_token', 5, END_OF_ACTION)
+        self.assertEqual(self.game.token.get('test_token'), 5)
+        self.game.check_tokens_for_use_once()
+        self.assertEqual(self.game.token.get('test_token'), None)
+
     def test_defeat_or_acquire_regulars(self):
         """
         defeating or acquiring game hand cards adds them to player discard hand
@@ -129,6 +143,7 @@ class TestGame(unittest.TestCase):
 
         killing_power = self.game.active_player.killing_power
         buying_power = self.game.active_player.buying_power
+        self.game.check_cards_eligibility()
 
         # acquire a regular game card
         card = self.game.defeat_or_acquire(selection='b0')
@@ -142,6 +157,7 @@ class TestGame(unittest.TestCase):
 
         self._fake_hand('Avatar of the Fallen')
         # kill a regular game card
+        self.game.check_cards_eligibility()
         card = self.game.defeat_or_acquire(selection='k0')
         # card does not in player's discard deck
         self.assertTrue(id(card) not in [id(c) for c in self.game.active_player.discard])
@@ -186,6 +202,15 @@ class TestGame(unittest.TestCase):
         self.assertTrue(id(selected_card) in [id(c) for c in self.game.discard])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
+
+         #cannot banish avatar
+        self._fake_hand('Avatar of the Fallen')
+        self._fake_user_hand(DRAW_1_BANISH_CENTER)
+        card = self.game.play_user_card('c0')
+        selected_card = self.game.selected_card
+        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.discard])
+        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
+        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
         #XXX need to test banish_construct
 
     def test_instant_ability_discard(self):
@@ -205,6 +230,15 @@ class TestGame(unittest.TestCase):
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
         self.assertTrue(len(self.game.active_player.hand), 4)
 
+    def test_instant_ability_add_random_cards_to_hand(self):
+        # no card to emulate, so it just plays it
+        card = self._get_card('Xeron, Duke of Lies')
+        self.game.play_abilities(card)
+        self.assertTrue(len(self.game.active_player.hand), 6)
+        for p in self.game.players:
+            if p != self.game.active_player:
+                self.assertTrue(len(self.game.active_player.hand), 4)
+
     def test_instant_ability_copy(self):
         # set up copy with another card
         self._fake_user_hand(IF_DISCARD_DRAW_TWO)
@@ -219,6 +253,67 @@ class TestGame(unittest.TestCase):
         self.assertTrue(id(selected_card) in [id(c) for c in self.game.active_player.discard])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
         self.assertTrue(len(self.game.active_player.hand), 7)
+
+    def test_kill_eligibility(self):
+        test_cards = {
+            'Avatar of the Fallen': [False, True],
+            'Voidthirster': [False, False],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.eligible, v[0])
+            self.game.active_player.killing_power = 100
+            self.game.change_action(ACTION_NORMAL)
+            self.assertEqual(card.eligible, v[1])
+
+    def test_buy_eligibility(self):
+        test_cards = {
+            'Avatar of the Fallen': [False, False],
+            'Voidthirster': [False, True],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.eligible, v[0])
+            self.game.active_player.buying_power = 100
+            self.game.change_action(ACTION_NORMAL)
+            self.assertEqual(card.eligible, v[1])
+
+    def test_banish_eligibility(self):
+        test_cards = {
+            'Avatar of the Fallen': [False, False],
+            'Voidthirster': [False, True],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.eligible, v[0])
+            self.game.change_action(ACTION_BANISH)
+            self.assertEqual(card.eligible, v[1])
+
+
+    def test_defeat_eligibility(self):
+        test_cards = {
+            'Avatar of the Fallen': [False, False],
+            'Voidthirster': [False, False],
+            'Corrosive Widow': [False, True],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.eligible, v[0])
+            self.game.set_token('killing_power', 4, END_OF_ACTION)
+            self.game.change_action(ACTION_DEFEAT)
+            self.assertEqual(card.eligible, v[1])
+
+    def test_acquire_eligibility(self):
+        test_cards = {
+            'Avatar of the Fallen': [False, False],
+            'Voidthirster': [False, True],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.eligible, v[0])
+            self.game.set_token('buying_power', 1000, END_OF_ACTION)
+            self.game.change_action(ACTION_ACQUIRE_TO_TOP)
+            self.assertEqual(card.eligible, v[1])
 
 
 

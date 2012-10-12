@@ -584,6 +584,7 @@ deck_one = [
             'instant_buy': 0,
             'instant_kill': 0,
             'abilities': CANNOT_BE_BANISHED_ACQUIRE_ANY_CENTER_CARD,
+            'banishable': False,
         },
         'count': 1,
     },

@@ -1,3 +1,4 @@
+import random
 from constants import *
 
 class AbilitiesMixin(object):
@@ -39,19 +40,19 @@ class AbilitiesMixin(object):
         self.must_copy_card()
 
     def defeat_monster_lt_4(self):
-        raise 'Not implemented'
+        self.can_defeat_card(killing_power=4)
 
     def defeat_monster_lt_6(self):
-        raise 'Not implemented'
+        self.can_defeat_card(killing_power=6)
 
     def acquire_any_center_hero(self):
-        raise 'Not implemented'
+        self.can_acquire_card(buying_power=1000)
 
     def if_lifebound_hero_plus_2_kill(self):
         raise 'Not implemented'
 
     def acquire_hero_3_or_less_to_top_of_deck(self):
-        raise 'Not implemented'
+        self.can_acquire_card(buying_power=3)
 
     def plus_1_buy_or_1_kill(self):
         raise 'Not implemented'
@@ -63,22 +64,28 @@ class AbilitiesMixin(object):
         raise 'Not implemented'
 
     def can_banish_1_hand_or_discard_and_center(self):
+        # banish in hand OR discard pile
+        # AND can banish in center row
         raise 'Not implemented'
 
     def opponents_keep_1_construct(self):
         raise 'Not implemented'
 
     def can_banish_1_center(self):
-        raise 'Not implemented'
+        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def cannot_be_banished_acquire_any_center_card(self):
+        # acquire OR defeat
         raise 'Not implemented'
 
     def opponents_destroy_1_construct(self):
         raise 'Not implemented'
 
     def add_random_card_to_hand_from_each_opponent(self):
-        raise 'Not implemented'
+        for p in self.players:
+            if p != self.active_player:
+                card = p.get_card(random.randint(0, len(p.hand)))
+                self.active_player.hand.append(card)
 
     def per_turn_draw_1(self):
         raise 'Not implemented'

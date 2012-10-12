@@ -16,7 +16,8 @@ class Card(object):
     instant_worth = 0
     instant_kill = 0
     instant_buy = 0
-
+    eligible = False
+    banishable = True
 
     def __init__(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -29,10 +30,17 @@ class Card(object):
     def card_row(self, idx, player_card=False, game_phand=False):
         if player_card:
             instruction = (bcolors.WHITE, '%s:%s' % ('[c]ard', idx))
-        elif game_phand:
-            instruction = (bcolors.WHITE, '%s:%s' % ('[p]ers', idx))
         else:
-            instruction = (bcolors.WHITE, '%s:%s' % (self.kill_buy_acquire, idx))
+            instruction = (bcolors.WHITE, ' ')
+        if self.eligible:
+            if player_card:
+                instruction = (bcolors.WHITE, '%s:%s' % ('[c]ard', idx))
+            elif game_phand:
+                instruction = (bcolors.WHITE, '%s:%s' % ('[p]ers', idx))
+            else:
+                instruction = (bcolors.WHITE, '%s:%s' % (
+                    self.kill_buy_acquire, idx)
+                )
 
         attr_list = [
             instruction,
@@ -95,6 +103,48 @@ class Card(object):
         elif self.is_persistent:
             str = '[b]uy'
         return str
+
+    def is_eligible(self, game):
+        """depending upon the situation and where the card is, it becomes
+        eligible for selection"""
+
+        self.eligible = False
+
+        if game.action == ACTION_DISCARD:
+            if self in game.active_player.hand:
+                self.eligible = True
+
+        if game.action == ACTION_COPY:
+            if self in game.played_user_cards:
+                self.eligible = True
+
+        # unbanishable cards have a banishable token attached to them
+        if game.action == ACTION_BANISH:
+            self.eligible = self.banishable
+
+        if game.action == ACTION_DEFEAT:
+            if self.card_type == CARD_TYPE_MONSTER:
+                if game.token.get('killing_power') >= self.kill:
+                    self.eligible = True
+
+        if game.action == ACTION_ACQUIRE_TO_TOP:
+            if self.card_type != CARD_TYPE_MONSTER:
+                if game.token.get('buying_power') >= self.buy:
+                    self.eligible = True
+
+        if game.action == ACTION_NORMAL:
+            # if it's in the player's hand, it's always eligible
+            if self in game.active_player.hand:
+                self.eligible = True
+            # check CAN KILL
+            if self.card_type == CARD_TYPE_MONSTER:
+                if game.active_player.killing_power >= self.kill:
+                    self.eligible = True
+            # check CAN BUY
+            else:
+                if game.active_player.buying_power >= self.buy:
+                    self.eligible = True
+        return self.eligible
 
     @property
     def is_monster(self):

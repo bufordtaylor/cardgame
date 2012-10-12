@@ -104,12 +104,22 @@ class InputMixin(object):
             if self.debug_counter > 5:
                 raise 'something is wrong'
                 return None, None
-            return self.handle_select_inputs(where, must_banish)
+            return self.handle_select_inputs(where, must)
+
+        if not card.eligible and not where == WHERE_PLAYER_HAND:
+            print_red('%s - Card not eligible for selection' % card.name)
+            self.debug_counter += 1
+            if self.debug_counter > 5:
+                return None, None
+            return self.handle_select_inputs(where, must)
+
         os.system(['clear','cls'][os.name == 'nt'])
         self.debug_counter = 0
         return card, card_idx
 
     def handle_inputs(self):
+        """for the main loop, when a player is playing cards"""
+        self.check_cards_eligibility()
         self.print_user_status()
         self.print_phand()
         self.print_hand()

@@ -49,6 +49,8 @@ class BaseGame(object):
         self.phand = [Card(**c) for c in persistant_game_hand]
         self.shuffle_deck()
         self.new_hand()
+        self.token = {}
+        self.token_erasers = {}
 
 class Game(
         BaseGame,
@@ -73,18 +75,37 @@ class Game(
         return self.players[self.turn]
 
     def must_copy_card(self):
-        self.action = ACTION_COPY
+        self.change_action(ACTION_COPY)
         self.select_card(num=1, where=WHERE_PLAYED, must=True)
 
     def can_discard_card(self, num, must=False):
-        self.action = ACTION_DISCARD
+        self.change_action(ACTION_DISCARD)
         self.select_card(num=num, where=WHERE_PLAYER_HAND, must=must)
 
     def must_banish_card(self, num, where):
         self.can_banish_card(num, where, must_banish=True)
 
+    def set_token(self, kind, value, end):
+        self.token[kind] = value
+        self.token_erasers[kind] = end
+
+    def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
+        self.set_token('killing_power', killing_power, END_OF_ACTION)
+        self.change_action(ACTION_DEFEAT)
+        self.select_card(1, where=where, must=False)
+
+    def must_acquire_card(self, where=WHERE_GAME_HAND):
+        self.can_acquire_card(where=where, must=True)
+
+    def can_acquire_card(self,
+        where=WHERE_GAME_HAND, must=False, buying_power=0
+    ):
+        self.set_token('buying_power', buying_power, END_OF_ACTION)
+        self.change_action(ACTION_ACQUIRE_TO_TOP)
+        self.select_card(1, where=where, must=must)
+
     def can_banish_card(self, num, where, must_banish=False):
-        self.action = ACTION_BANISH
+        self.change_action(ACTION_BANISH)
         self.select_card(num, where, must_banish)
 
     def move_card(self, card, card_idx, from_deck):
@@ -93,8 +114,13 @@ class Game(
             # get_card removes it from deck hand
             card = self.get_card(card_idx)
             self.selected_card = card
-            # banish to game discard deck ACTION_BANISH
-            self.discard.append(card)
+            if self.action == ACTION_BANISH:
+                # banish to game discard deck ACTION_BANISH
+                self.discard.append(card)
+            elif self.action == ACTION_DEFEAT:
+                self.discard.append(card)
+            elif self.action == ACTION_ACQUIRE_TO_TOP:
+                self.active_player.deck.append(card)
             self.draw_card()
         elif from_deck == WHERE_PLAYED:
             # used in ACTION_COPY
@@ -117,6 +143,18 @@ class Game(
             # move card from phand to player discard deck
             self.active_player.discard.append(card)
 
+        self.check_tokens_for_use_once()
+
+    def check_tokens_for_use_once(self):
+        # clear out tokens that are use once
+        to_delete = []
+        for k, v in self.token_erasers.iteritems():
+            if v == END_OF_ACTION:
+                del self.token[k]
+                to_delete.append(k)
+        for t in to_delete:
+            del self.token_erasers[t]
+
     def select_card(self, num, where, must=False):
         """
         select a card to perform an action on it.
@@ -133,13 +171,17 @@ class Game(
 
             self.move_card(card, card_idx, from_deck=where)
 
+    def change_action(self, action):
+        self.action = action
+        self.check_cards_eligibility()
+
     def play_abilities(self, card):
         if not card.abilities:
             return
 
         self.selected_card = None
         getattr(self,ABILITY_MAP.get(card.abilities))()
-        self.action = ACTION_NORMAL
+        self.change_action(ACTION_NORMAL)
 
     def play_all_user_cards(self, selection):
         if len(self.active_player.hand) == 0:
@@ -148,6 +190,19 @@ class Game(
         # play all cards until therea re no more
         while self.active_player.hand:
             self.play_user_card(selection='c0')
+
+    def check_cards_eligibility(self):
+        """go through each card and mark eligiblity for current action"""
+        for c in self.hand:
+            c.is_eligible(self)
+        for c in self.phand:
+            c.is_eligible(self)
+        for c in self.discard:
+            c.is_eligible(self)
+        for c in self.active_player.phand:
+            c.is_eligible(self)
+        for c in self.active_player.discard:
+            c.is_eligible(self)
 
     def play_user_card(self, selection, persistent=False):
         card, card_idx = self.sanitize(selection, persistent, player_card=True)
@@ -181,6 +236,13 @@ class Game(
         os.system(['clear','cls'][os.name == 'nt'])
         moved_card = None
 
+        if not card.eligible:
+            print_red('%s - Card not eligible for selection' % card.name)
+            self.debug_counter += 1
+            if self.debug_counter > 5:
+                return None, None
+            return self.handle_inputs()
+
         if card.card_type == CARD_TYPE_MONSTER:
             if self.active_player.killing_power >= card.kill:
                 card= self.get_card(card_idx, persistent)
@@ -199,17 +261,12 @@ class Game(
                 return self.handle_inputs()
         return moved_card
 
-    def check_abilities(self, action, card=None):
-        """loop through player phand to play abilities"""
-        print 'not ready yet', action, card
-
     def acquire_card(self, card, persistent):
         # place acquired card in player's discard deck
         self.active_player.discard.append(card)
         self.active_player.buying_power -= card.buy
         if not persistent:
             self.draw_card()
-        self.check_abilities('acquired', card=card)
         return card
 
     def defeat_card(self, card, persistent):
@@ -218,7 +275,6 @@ class Game(
         if not persistent:
             self.discard.append(card)
             self.draw_card()
-        self.check_abilities('defeated', card=card)
         return card
 
     def player_loop(self):

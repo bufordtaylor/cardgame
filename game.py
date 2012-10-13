@@ -32,7 +32,6 @@ class BaseGame(object):
     turn = 0 # player's turn
     game_active = True
     debug = True
-    action = ACTION_NORMAL #normal pay, or selection card to do something with it (banish, copy)
     selected_card = None #card being banished, copied, etc. Used for testing, not displayed
     debug_counter = 0
     active_card = None
@@ -49,8 +48,12 @@ class BaseGame(object):
         self.phand = [Card(**c) for c in persistant_game_hand]
         self.shuffle_deck()
         self.new_hand()
+        # tokens are used to override player's buy or kill powers,
+        # or add special abilities
         self.token = {}
+        # token erasers denote when to erase each token
         self.token_erasers = {}
+        self.actions = ACTION_NORMAL
 
 class Game(
         BaseGame,
@@ -75,11 +78,11 @@ class Game(
         return self.players[self.turn]
 
     def must_copy_card(self):
-        self.change_action(ACTION_COPY)
+        self.change_action([ACTION_COPY])
         self.select_card(num=1, where=WHERE_PLAYED, must=True)
 
     def can_discard_card(self, num, must=False):
-        self.change_action(ACTION_DISCARD)
+        self.change_action([ACTION_DISCARD_FROM_PLAYER_HAND])
         self.select_card(num=num, where=WHERE_PLAYER_HAND, must=must)
 
     def must_banish_card(self, num, where):
@@ -91,7 +94,7 @@ class Game(
 
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
         self.set_token('killing_power', killing_power, END_OF_ACTION)
-        self.change_action(ACTION_DEFEAT)
+        self.change_action([ACTION_DEFEAT])
         self.select_card(1, where=where, must=False)
 
     def must_acquire_card(self, where=WHERE_GAME_HAND):
@@ -101,11 +104,10 @@ class Game(
         where=WHERE_GAME_HAND, must=False, buying_power=0
     ):
         self.set_token('buying_power', buying_power, END_OF_ACTION)
-        self.change_action(ACTION_ACQUIRE_TO_TOP)
+        self.change_acction([ACTION_ACQUIRE_TO_TOP])
         self.select_card(1, where=where, must=must)
 
     def can_banish_card(self, num, where, must_banish=False):
-        self.change_action(ACTION_BANISH)
         self.select_card(num, where, must_banish)
 
     def move_card(self, card, card_idx, from_deck):
@@ -114,12 +116,12 @@ class Game(
             # get_card removes it from deck hand
             card = self.get_card(card_idx)
             self.selected_card = card
-            if self.action == ACTION_BANISH:
+            if ACTION_BANISH in self.actions:
                 # banish to game discard deck ACTION_BANISH
                 self.discard.append(card)
-            elif self.action == ACTION_DEFEAT:
+            elif ACTION_DEFEAT in self.actions:
                 self.discard.append(card)
-            elif self.action == ACTION_ACQUIRE_TO_TOP:
+            elif ACTION_ACQUIRE_TO_TOP in self.actions:
                 self.active_player.deck.append(card)
             self.draw_card()
         elif from_deck == WHERE_PLAYED:
@@ -130,7 +132,7 @@ class Game(
             # get_card removes it from player hand
             card = self.active_player.get_card(card_idx)
             self.selected_card = card
-            if self.action == ACTION_DISCARD:
+            if ACTION_DISCARD_FROM_PLAYER_HAND in self.actions:
                 # move card to player's discard deck
                 self.active_player.discard.append(card)
             else:
@@ -144,6 +146,13 @@ class Game(
             self.active_player.discard.append(card)
 
         self.check_tokens_for_use_once()
+
+    def use_token(self, token):
+        try:
+            del self.token[token]
+            del self.token_erasers[token]
+        except KeyError:
+            pass
 
     def check_tokens_for_use_once(self):
         # clear out tokens that are use once
@@ -171,8 +180,8 @@ class Game(
 
             self.move_card(card, card_idx, from_deck=where)
 
-    def change_action(self, action):
-        self.action = action
+    def change_action(self, actions):
+        self.actions = actions
         self.check_cards_eligibility()
 
     def play_abilities(self, card):
@@ -192,17 +201,17 @@ class Game(
             self.play_user_card(selection='c0')
 
     def check_cards_eligibility(self):
-        """go through each card and mark eligiblity for current action"""
+        """go through each card and mark eligiblity for current actions"""
         for c in self.hand:
-            c.is_eligible(self)
+            c.check_actions(self)
         for c in self.phand:
-            c.is_eligible(self)
+            c.check_actions(self)
         for c in self.discard:
-            c.is_eligible(self)
+            c.check_actions(self)
         for c in self.active_player.phand:
-            c.is_eligible(self)
+            c.check_actions(self)
         for c in self.active_player.discard:
-            c.is_eligible(self)
+            c.check_actions(self)
 
     def play_user_card(self, selection, persistent=False):
         card, card_idx = self.sanitize(selection, persistent, player_card=True)
@@ -236,7 +245,7 @@ class Game(
         os.system(['clear','cls'][os.name == 'nt'])
         moved_card = None
 
-        if not card.eligible:
+        if not card.can_buy and not card.can_kill:
             print_red('%s - Card not eligible for selection' % card.name)
             self.debug_counter += 1
             if self.debug_counter > 5:
@@ -252,26 +261,26 @@ class Game(
                 print_red(NOT_ENOUGH_KILL)
                 return self.handle_inputs()
         else:
-            if self.active_player.buying_power >= card.buy:
-                card= self.get_card(card_idx, persistent)
-                moved_card = self.acquire_card(card, persistent)
-                print_blue('BOUGHT CARD %s' % card)
-            else:
-                print_red(NOT_ENOUGH_BUY)
-                return self.handle_inputs()
+            card= self.get_card(card_idx, persistent)
+            moved_card = self.acquire_card(card, persistent)
         return moved_card
 
     def acquire_card(self, card, persistent):
+        kill, buy = card.apply_card_tokens(self)
+        self.use_token('minus_buy')
+        self.use_token('minus_construct_buy')
         # place acquired card in player's discard deck
         self.active_player.discard.append(card)
-        self.active_player.buying_power -= card.buy
+        self.active_player.buying_power -= buy
         if not persistent:
             self.draw_card()
         return card
 
     def defeat_card(self, card, persistent):
+        kill, buy = card.apply_card_tokens(self)
+        self.use_token('minus_kill')
         self.active_player.points += card.instant_worth
-        self.active_player.killing_power -= card.kill
+        self.active_player.killing_power -= kill
         if not persistent:
             self.discard.append(card)
             self.draw_card()

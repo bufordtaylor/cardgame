@@ -28,13 +28,21 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         if not must:
             none_choice = '[n]one '
 
-        if self.game.action == ACTION_NORMAL:
-            input_string = "COMMANDS: acquire [p]ersistent | [k]ill enemy | [b]uy heroes | play [c]ard | play [a]ll | play pe[r]sistent | show p[l]ayed cards | [e]nd turn "
-        elif self.game.action == ACTION_BANISH:
-            input_string = "COMMANDS: [b]anish card %s" % (none_choice)
-        elif self.game.action == ACTION_DISCARD:
-            input_string = "COMMANDS: [d]iscard card %s" % (none_choice)
-        return raw_input(input_string)
+        input_string = ['show p[l]ayed cards']
+        if ACTION_PLAY in self.game.actions:
+            input_string.append('play [c]ard')
+            input_string.append('play [a]ll card')
+        if ACTION_BUY in self.game.actions:
+            input_string.append('[b]uy heroes')
+            input_string.append('buy [p]ersistent')
+        if ACTION_KILL in self.game.actions:
+            input_string.append('[k]ill enemy')
+        if ACTION_BANISH in self.game.actions:
+            input_string.append('[b]anish card %s' % (none_choice))
+        if ACTION_DISCARD_FROM_PLAYER_HAND in self.game.actions:
+            input_string.append('[d]iscard card %s' % (none_choice))
+        input_string.append('[e]nd turn')
+        return raw_input(' | '.join(input_string))
 
     @property
     def is_computer(self):
@@ -54,6 +62,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         self.new_hand()
         self.buying_power = 0
         self.killing_power = 0
+        self.game.token = {}
+        self.game.token_erasers = {}
         os.system(['clear','cls'][os.name == 'nt'])
 
 class Computer(Player, ShufflePlayerCardMixin):
@@ -64,14 +74,19 @@ class Computer(Player, ShufflePlayerCardMixin):
 
     def make_selection(self, must=False):
         selection = 'a'
-        if self.game.action == ACTION_NORMAL:
+        # order is important here for unit tests
+        if ACTION_BUY in self.game.actions or ACTION_KILL in self.game.actions:
             if len(self.hand) == 0:
                 selection = 'p0'
-        elif self.game.action == ACTION_BANISH:
+        elif ACTION_BANISH in self.game.actions:
             selection = 'b0'
-        elif self.game.action == ACTION_DISCARD:
+        elif ACTION_DISCARD_FROM_PLAYER_HAND in self.game.actions:
             selection = 'd0'
-        elif self.game.action == ACTION_COPY:
+        elif ACTION_BANISH_PLAYER_DISCARD in self.game.actions:
+            selection = 'b0'
+        elif ACTION_BANISH_PLAYER_HAND in self.game.actions:
+            selection = 'b0'
+        elif ACTION_COPY in self.game.actions:
             selection = 'c0'
 
         return selection

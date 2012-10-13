@@ -14,10 +14,12 @@ class AbilitiesMixin(object):
 
     def draw_2_then_banish_1_hand(self):
         self.draw_2()
+        self.change_action([ACTION_BANISH])
         self.must_banish_card(num=1, where=WHERE_PLAYER_HAND)
 
     def draw_1_banish_center(self):
         self.draw_1()
+        self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def draw_1_if_control_gt_2_constructs(self):
@@ -58,25 +60,32 @@ class AbilitiesMixin(object):
         raise 'Not implemented'
 
     def plus_1_point_per_controlled_construct(self):
-        raise 'Not implemented'
+        factions = []
+        for c in self.active_player.phand:
+            if c.faction not in factions:
+                factions.append(c.faction)
+        self.active_player.points += len(factions)
 
     def next_construct_1_less_buy(self):
-        raise 'Not implemented'
+        self.set_token('minus_construct_buy', 1, END_OF_TURN)
 
     def can_banish_1_hand_or_discard_and_center(self):
-        # banish in hand OR discard pile
-        # AND can banish in center row
-        raise 'Not implemented'
+        self.change_action(
+            [ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD]
+        )
+        self.can_banish_card(num=1, where=None)
+        self.change_action([ACTION_BANISH])
+        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def opponents_keep_1_construct(self):
         raise 'Not implemented'
 
     def can_banish_1_center(self):
+        self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def cannot_be_banished_acquire_any_center_card(self):
-        # acquire OR defeat
-        raise 'Not implemented'
+        self.can_acquire_card(buying_power=1000)
 
     def opponents_destroy_1_construct(self):
         raise 'Not implemented'
@@ -84,13 +93,17 @@ class AbilitiesMixin(object):
     def add_random_card_to_hand_from_each_opponent(self):
         for p in self.players:
             if p != self.active_player:
-                card = p.get_card(random.randint(0, len(p.hand)))
+                card = p.get_card(random.randint(0, len(p.hand)-1))
                 self.active_player.hand.append(card)
 
     def per_turn_draw_1(self):
         raise 'Not implemented'
 
     def per_turn_plus_1_kill_can_spend_4_to_buy_3_points(self):
+        # set game token for this
+        # kind = whatever
+        # value = card itself that has the ability
+        # end of turn token removed
         raise 'Not implemented'
 
     def per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self):

@@ -61,31 +61,42 @@ class InputMixin(object):
         player_card=False
         played_card=False
         persistent=False
+
+        if ACTION_BANISH_PLAYER_HAND in self.actions:
+            self.print_user_hand()
+
+        if ACTION_BANISH_PLAYER_DISCARD in self.actions:
+            self.print_user_hand_discard()
+
         if where == WHERE_GAME_HAND:
-            if len(self.hand) == 0:
-                return None, None
-            elif len(self.hand) == 1:
-                return self.hand[0]
+            if must:
+                if len(self.hand) == 0:
+                    return None, None
+                elif len(self.hand) == 1:
+                    return self.hand[0]
             self.print_hand()
         elif where == WHERE_PLAYER_HAND:
-            if len(self.active_player.hand) == 0:
-                return None, None
-            elif len(self.active_player.hand) == 1:
-                return self.active_player.hand[0], 0
+            if must:
+                if len(self.active_player.hand) == 0:
+                    return None, None
+                elif len(self.active_player.hand) == 1:
+                    return self.active_player.hand[0], 0
             self.print_user_hand()
             player_card=True
         elif where == WHERE_PLAYED:
-            if len(self.played_user_cards) == 0:
-                return None, None
-            elif len(self.played_user_cards) == 1:
-                return self.played_user_cards[0], 0
+            if must:
+                if len(self.played_user_cards) == 0:
+                    return None, None
+                elif len(self.played_user_cards) == 1:
+                    return self.played_user_cards[0], 0
             self.print_user_played_cards()
             played_card=True
         elif where == WHERE_PERSISTENT:
-            if len(self.active_player.phand) == 0:
-                return None, None
-            elif len(self.active_player.phand) == 1:
-                return self.active_player.phand[0], 0
+            if must:
+                if len(self.active_player.phand) == 0:
+                    return None, None
+                elif len(self.active_player.phand) == 1:
+                    return self.active_player.phand[0], 0
             self.print_user_phand()
             player_card=True
             persistent=True
@@ -106,7 +117,7 @@ class InputMixin(object):
                 return None, None
             return self.handle_select_inputs(where, must)
 
-        if not card.eligible and not where == WHERE_PLAYER_HAND:
+        if not card.eligible(self) and not where == WHERE_PLAYER_HAND:
             print_red('%s - Card not eligible for selection' % card.name)
             self.debug_counter += 1
             if self.debug_counter > 5:

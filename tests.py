@@ -213,6 +213,16 @@ class TestGame(unittest.TestCase):
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
         #XXX need to test banish_construct
 
+    def test_kill_ability_banish(self):
+        self._fake_user_hand(CAN_BANISH_1_HAND_OR_DISCARD_AND_CENTER)
+        card = self._get_card('Voidthirster')
+        self.game.active_player.discard.append(card)
+        card = self.game.play_user_card('c0')
+        selected_card = self.game.selected_card
+        self.assertTrue(len(self.game.active_player.hand), 4)
+        self.assertTrue(len(self.game.active_player.discard), 0)
+        self.assertTrue(len(self.game.discard), 2)
+
     def test_instant_ability_discard(self):
         self._fake_user_hand(IF_DISCARD_DRAW_TWO)
         card = self.game.play_user_card('c0')
@@ -261,10 +271,10 @@ class TestGame(unittest.TestCase):
         }
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
-            self.assertEqual(card.eligible, v[0])
+            self.assertEqual(card.can_kill, v[0])
             self.game.active_player.killing_power = 100
             self.game.change_action(ACTION_NORMAL)
-            self.assertEqual(card.eligible, v[1])
+            self.assertEqual(card.can_kill, v[1])
 
     def test_buy_eligibility(self):
         test_cards = {
@@ -273,10 +283,10 @@ class TestGame(unittest.TestCase):
         }
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
-            self.assertEqual(card.eligible, v[0])
+            self.assertEqual(card.can_buy, v[0])
             self.game.active_player.buying_power = 100
             self.game.change_action(ACTION_NORMAL)
-            self.assertEqual(card.eligible, v[1])
+            self.assertEqual(card.can_buy, v[1])
 
     def test_banish_eligibility(self):
         test_cards = {
@@ -285,9 +295,9 @@ class TestGame(unittest.TestCase):
         }
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
-            self.assertEqual(card.eligible, v[0])
-            self.game.change_action(ACTION_BANISH)
-            self.assertEqual(card.eligible, v[1])
+            self.assertEqual(card.can_banish, v[0])
+            self.game.change_action([ACTION_BANISH])
+            self.assertEqual(card.can_banish, v[1])
 
 
     def test_defeat_eligibility(self):
@@ -298,10 +308,10 @@ class TestGame(unittest.TestCase):
         }
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
-            self.assertEqual(card.eligible, v[0])
+            self.assertEqual(card.can_defeat, v[0])
             self.game.set_token('killing_power', 4, END_OF_ACTION)
-            self.game.change_action(ACTION_DEFEAT)
-            self.assertEqual(card.eligible, v[1])
+            self.game.change_action([ACTION_DEFEAT])
+            self.assertEqual(card.can_defeat, v[1])
 
     def test_acquire_eligibility(self):
         test_cards = {
@@ -310,10 +320,39 @@ class TestGame(unittest.TestCase):
         }
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
-            self.assertEqual(card.eligible, v[0])
+            self.assertEqual(card.can_acquire_to_top, v[0])
             self.game.set_token('buying_power', 1000, END_OF_ACTION)
-            self.game.change_action(ACTION_ACQUIRE_TO_TOP)
-            self.assertEqual(card.eligible, v[1])
+            self.game.change_action([ACTION_ACQUIRE_TO_TOP])
+            self.assertEqual(card.can_acquire_to_top, v[1])
+
+    def test_ability_point_per_controlled_construct(self):
+        self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
+        self.game.active_player.phand.append(self._get_card('Grand Design'))
+        self.game.active_player.phand.append(self._get_card('Snapdragon'))
+        self._fake_user_hand(PLUS_1_POINT_PER_CONTROLLED_CONSTRUCT)
+        card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.points, 2)
+
+
+    def test_next_construct_1_less_buy(self):
+        test_cards = {
+            'Snapdragon': [False, True, False],
+            'Ascetic of the Lidless Eye': [False, False, False],
+        }
+        for k, v in test_cards.iteritems():
+            card = self._fake_hand(k)
+            self.assertEqual(card.can_buy, v[0])
+            self.game.active_player.buying_power = 2
+            self._fake_user_hand(NEXT_CONSTRUCT_1_LESS_BUY)
+            user_card = self.game.play_user_card('c0')
+            self.assertEqual(card.can_buy, v[1])
+            if card.can_buy:
+                self.game.acquire_card(card, persistent=False)
+                card.check_actions(self.game)
+                self.game.active_player.buying_power = 4
+                #import ipdb; ipdb.set_trace()
+                self.game.hand[0] = card
+                self.assertEqual(card.can_buy, v[2])
 
 
 

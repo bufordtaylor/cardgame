@@ -1,3 +1,4 @@
+import os
 from colors import *
 class PrintMixin(object):
 
@@ -60,6 +61,12 @@ class PrintMixin(object):
         if len(self.active_player.hand) > 0:
             print_green('---%s UNPLAYED' % self.active_player.name)
             self.print_card_hand(self.active_player.hand, player=True)
+            print
+
+    def print_user_hand_discard(self):
+        if len(self.active_player.discard) > 0:
+            print_green('---%s DISCARD' % self.active_player.name)
+            self.print_card_hand(self.active_player.discard, player=True)
             print
 
     def print_user_phand(self):

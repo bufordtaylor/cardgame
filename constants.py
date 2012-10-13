@@ -9,17 +9,32 @@ CARD_TYPE_MONSTER = 0
 CARD_TYPE_HERO = 1
 CARD_TYPE_PERSISTENT = 2
 
-# normal game play
-ACTION_NORMAL = 0
 # pause game play to select card in order to do something with it
 ACTION_BANISH = 1
 ACTION_COPY = 2
-ACTION_DISCARD = 3
+ACTION_DISCARD_FROM_PLAYER_HAND = 3
+# defeat means that player can defeat a monster without paying it's cost
 ACTION_DEFEAT = 4
 ACTION_ACQUIRE_TO_TOP = 5
+ACTION_KEEP = 6
+ACTION_BANISH_PLAYER_PERSISTENT = 7
+ACTION_USE = 8
+# kill means that a player can spend kill to defeat card
+ACTION_KILL = 9
+# buy means that a player can spend buy to acquire card
+ACTION_BUY = 10
+ACTION_PLAY = 11
+ACTION_ACQUIRE_TO_HAND = 12
+ACTION_ACQUIRE_TO_DISCARD = 13
+ACTION_BANISH_PLAYER_HAND = 14
+ACTION_BANISH_PLAYER_DISCARD = 15
+
+# normal game play
+ACTION_NORMAL = [ACTION_BUY, ACTION_KILL, ACTION_PLAY]
 
 # signifies we're done with the action
 END_OF_ACTION = 0
+END_OF_TURN = 1
 
 ENLIGHTENED = 0
 VOID = 1

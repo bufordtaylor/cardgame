@@ -333,6 +333,22 @@ class TestGame(unittest.TestCase):
         card = self.game.play_user_card('c0')
         self.assertEqual(self.game.active_player.points, 2)
 
+    def test_use_eligibility(self):
+        test_cards = {
+            'The All-Seeing Eye': [True, False],
+        }
+        for k, v in test_cards.iteritems():
+            self._fake_user_hand(PER_TURN_DRAW_1)
+            card = self.game.play_user_card('c0')
+            self.assertEqual(card.can_use, v[0])
+            self.assertEqual(len(self.game.active_player.phand), 1)
+            self.assertEqual(len(self.game.active_player.hand), 4)
+            self.assertEqual(len(self.game.token), 1)
+            card = self.game.play_user_card_persistent('t0')
+            self.assertEqual(len(self.game.token), 0)
+            self.assertEqual(card.can_use, v[1])
+            self.assertEqual(len(self.game.active_player.phand), 1)
+            self.assertEqual(len(self.game.active_player.hand), 5)
 
     def test_next_construct_1_less_buy(self):
         test_cards = {

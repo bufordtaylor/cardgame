@@ -68,6 +68,13 @@ class InputMixin(object):
         if ACTION_BANISH_PLAYER_DISCARD in self.actions:
             self.print_user_hand_discard()
 
+        # determine if there are any persistents that are useable
+        if (
+            ACTION_PLAY in self.actions
+            and ACTION_USE in self.active_player.phand
+        ):
+            self.print_user_phand()
+
         if where == WHERE_GAME_HAND:
             if must:
                 if len(self.hand) == 0:
@@ -141,6 +148,8 @@ class InputMixin(object):
             return
         elif selection.startswith('c'):
             return self.play_user_card(selection)
+        elif selection.startswith('t'):
+            return self.play_user_card_persistent(selection)
         elif selection.startswith('a'):
             return self.play_all_user_cards(selection)
         elif selection.startswith('l'):

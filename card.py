@@ -146,6 +146,16 @@ class Card(object):
             if self in game.active_player.hand:
                 self.actions.append(ACTION_PLAY)
 
+            # tokens are set for persistent player cards
+            # if a matching token is found on the game, the persistent can be
+            # used for further abilities
+            for token, card in game.token.iteritems():
+                if (
+                    game.token.get(token) == card and
+                    game.used_tokens.get(token) != card
+                ):
+                    self.actions.append(ACTION_USE)
+
         if self.card_type == CARD_TYPE_MONSTER:
             if game_action == ACTION_KILL:
             # check CAN KILL

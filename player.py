@@ -57,6 +57,10 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
     def start_turn(self):
         self.active = True
 
+        # check the persistents
+        for card in self.phand:
+            self.game.play_user_card(card)
+
     def end_turn(self):
         self.active = False
         self.new_hand()

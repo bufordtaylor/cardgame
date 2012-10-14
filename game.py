@@ -51,6 +51,7 @@ class BaseGame(object):
         # tokens are used to override player's buy or kill powers,
         # or add special abilities
         self.token = {}
+        self.used_tokens = {}
         # token erasers denote when to erase each token
         self.token_erasers = {}
         self.actions = ACTION_NORMAL
@@ -149,10 +150,12 @@ class Game(
 
     def use_token(self, token):
         try:
+            self.used_tokens[token] = self.token[token]
             del self.token[token]
             del self.token_erasers[token]
         except KeyError:
             pass
+        self.check_cards_eligibility()
 
     def check_tokens_for_use_once(self):
         # clear out tokens that are use once
@@ -189,7 +192,7 @@ class Game(
             return
 
         self.selected_card = None
-        getattr(self,ABILITY_MAP.get(card.abilities))()
+        getattr(self,ABILITY_MAP.get(card.abilities))(card=card)
         self.change_action(ACTION_NORMAL)
 
     def play_all_user_cards(self, selection):
@@ -213,6 +216,17 @@ class Game(
         for c in self.active_player.discard:
             c.check_actions(self)
 
+    def play_user_card_persistent(self, selection, action=ACTION_USE):
+        card, card_idx = self.sanitize(selection, persistent=True, player_card=True)
+        if not card:
+            return self.handle_inputs()
+        os.system(['clear','cls'][os.name == 'nt'])
+        if action in card.actions:
+            getattr(
+                self,ABILITY_MAP.get(card.abilities)
+            )(card=card, action=action)
+        return card
+
     def play_user_card(self, selection, persistent=False):
         card, card_idx = self.sanitize(selection, persistent, player_card=True)
         if not card:
@@ -225,6 +239,8 @@ class Game(
         self.play_user_card_effects(card)
         if card.card_type == CARD_TYPE_PERSISTENT:
             self.active_player.phand.append(card)
+            #TODO we are calling this in play_user_card_effects
+            self.check_cards_eligibility()
         else:
             self.played_user_cards.append(card)
         self.active_card = []

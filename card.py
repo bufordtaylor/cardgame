@@ -1,9 +1,10 @@
 import random
+from abilities_constants import *
+from constants import *
 from colors import (
     bcolors, print_dict, print_green,prepare_card_row,
     print_white, print_blue, print_purple, print_ordered_cards,
 )
-from constants import *
 
 class Card(object):
     name = None
@@ -118,6 +119,7 @@ class Card(object):
     def _determine_actions(self, game_action, game):
         kill, buy = self.apply_card_tokens(game)
 
+
         if game_action == ACTION_DISCARD_FROM_PLAYER_HAND:
             if self in game.active_player.hand:
                 self.actions.append(ACTION_DISCARD_FROM_PLAYER_HAND)
@@ -155,6 +157,16 @@ class Card(object):
                     game.used_tokens.get(token) != card
                 ):
                     self.actions.append(ACTION_USE)
+
+        if id(self) in [id(c) for c in game.active_player.hand]:
+            return
+
+        if id(self) in [id(c) for c in game.active_player.phand]:
+            if (not game.used_tokens.get(self.abilities) and
+                self.abilities in PERSISTENT_LIST
+            ):
+                getattr(game,ABILITY_MAP.get(self.abilities))(card=self)
+            return
 
         if self.card_type == CARD_TYPE_MONSTER:
             if game_action == ACTION_KILL:

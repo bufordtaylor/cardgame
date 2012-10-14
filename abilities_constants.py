@@ -76,3 +76,7 @@ ABILITY_MAP = {
     PER_TURN_PLUS_1_KILL: 'per_turn_plus_1_kill',
     ACQUIRE_OR_DEFEAT_ANY: 'acquire_or_defeat_any',
 }
+
+PERSISTENT_LIST = [
+    PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS
+]

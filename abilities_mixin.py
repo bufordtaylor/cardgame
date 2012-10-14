@@ -105,12 +105,16 @@ class AbilitiesMixin(object):
         else:
             self.set_token(card.abilities, card, END_OF_TURN)
 
-    def per_turn_plus_1_kill_can_spend_4_to_buy_3_points(self, card=None):
-        # set game token for this
-        # kind = whatever
-        # value = card itself that has the ability
-        # end of turn token removed
-        raise 'Not implemented'
+    def per_turn_plus_1_kill_can_spend_4_to_buy_3_points(self, card=None, action=None):
+        if action == ACTION_USE:
+            self.active_player.buying_power -= 4
+            self.active_player.points += 3
+            self.use_token(card.abilities)
+        else:
+            if self.active_player.buying_power >= 4:
+                self.set_token(card.abilities, card, END_OF_TURN)
+            elif self.token.get(card.abilities):
+                self.remove_token(card.abilities)
 
     def per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self, card=None):
         raise 'Not implemented'

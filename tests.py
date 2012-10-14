@@ -333,22 +333,44 @@ class TestGame(unittest.TestCase):
         card = self.game.play_user_card('c0')
         self.assertEqual(self.game.active_player.points, 2)
 
-    def test_use_eligibility(self):
-        test_cards = {
-            'The All-Seeing Eye': [True, False],
-        }
-        for k, v in test_cards.iteritems():
-            self._fake_user_hand(PER_TURN_DRAW_1)
-            card = self.game.play_user_card('c0')
-            self.assertEqual(card.can_use, v[0])
-            self.assertEqual(len(self.game.active_player.phand), 1)
-            self.assertEqual(len(self.game.active_player.hand), 4)
-            self.assertEqual(len(self.game.token), 1)
-            card = self.game.play_user_card_persistent('t0')
-            self.assertEqual(len(self.game.token), 0)
-            self.assertEqual(card.can_use, v[1])
-            self.assertEqual(len(self.game.active_player.phand), 1)
-            self.assertEqual(len(self.game.active_player.hand), 5)
+    def test_ability_per_turn_plus_1_kill_can_spend_4_to_buy_3_points(self):
+        self._fake_user_hand(PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS)
+        card = self.game.play_user_card('c0')
+        self.assertEqual(len(self.game.active_player.phand), 1)
+        self.assertEqual(card.can_use, False)
+        # check basic case
+        self.game.active_player.buying_power = 4
+        self.game.check_cards_eligibility()
+        self.assertEqual(card.can_use, True)
+        # check if token is removed if buying power decreased
+        self.game.active_player.buying_power = 3
+        self.game.check_cards_eligibility()
+        self.assertEqual(card.can_use, False)
+        # check if using token is correct
+        self.game.active_player.buying_power = 4
+        self.game.check_cards_eligibility()
+        self.assertEqual(card.can_use, True)
+        card = self.game.play_user_card_persistent('t0')
+        self.assertEqual(card.can_use, False)
+        self.assertEqual(self.game.active_player.buying_power, 0)
+        self.assertEqual(self.game.active_player.points, 3)
+        # check if can only use once
+        self.game.active_player.buying_power = 4
+        self.game.check_cards_eligibility()
+        self.assertEqual(card.can_use, False)
+
+    def test_ability_per_turn_draw_1(self):
+        self._fake_user_hand(PER_TURN_DRAW_1)
+        card = self.game.play_user_card('c0')
+        self.assertEqual(card.can_use, True)
+        self.assertEqual(len(self.game.active_player.phand), 1)
+        self.assertEqual(len(self.game.active_player.hand), 4)
+        self.assertEqual(len(self.game.token), 1)
+        card = self.game.play_user_card_persistent('t0')
+        self.assertEqual(len(self.game.token), 0)
+        self.assertEqual(card.can_use, False)
+        self.assertEqual(len(self.game.active_player.phand), 1)
+        self.assertEqual(len(self.game.active_player.hand), 5)
 
     def test_next_construct_1_less_buy(self):
         test_cards = {

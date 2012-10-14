@@ -148,14 +148,20 @@ class Game(
 
         self.check_tokens_for_use_once()
 
-    def use_token(self, token):
+    def remove_token(self, token):
         try:
-            self.used_tokens[token] = self.token[token]
             del self.token[token]
             del self.token_erasers[token]
         except KeyError:
             pass
         self.check_cards_eligibility()
+
+    def use_token(self, token):
+        try:
+            self.used_tokens[token] = self.token[token]
+            self.remove_token(token)
+        except KeyError:
+            pass
 
     def check_tokens_for_use_once(self):
         # clear out tokens that are use once
@@ -283,8 +289,8 @@ class Game(
 
     def acquire_card(self, card, persistent):
         kill, buy = card.apply_card_tokens(self)
-        self.use_token('minus_buy')
-        self.use_token('minus_construct_buy')
+        self.remove_token('minus_buy')
+        self.remove_token('minus_construct_buy')
         # place acquired card in player's discard deck
         self.active_player.discard.append(card)
         self.active_player.buying_power -= buy
@@ -294,7 +300,7 @@ class Game(
 
     def defeat_card(self, card, persistent):
         kill, buy = card.apply_card_tokens(self)
-        self.use_token('minus_kill')
+        self.remove_token('minus_kill')
         self.active_player.points += card.instant_worth
         self.active_player.killing_power -= kill
         if not persistent:

@@ -359,6 +359,13 @@ class TestGame(unittest.TestCase):
         self.game.check_cards_eligibility()
         self.assertEqual(card.can_use, False)
 
+    def test_instant_ability_if_lifebound_hero_plus_2_kill(self):
+        self.game.played_user_cards.append(self._get_card('Wolf Shaman'))
+        self._fake_user_hand(IF_LIFEBOUND_HERO_PLUS_2_KILL)
+        card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.killing_power, 2)
+
+
     def test_ability_per_turn_draw_1(self):
         self._fake_user_hand(PER_TURN_DRAW_1)
         card = self.game.play_user_card('c0')

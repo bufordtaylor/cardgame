@@ -51,7 +51,12 @@ class AbilitiesMixin(object):
         self.can_acquire_card(buying_power=1000)
 
     def if_lifebound_hero_plus_2_kill(self, card=None):
-        raise 'Not implemented'
+        add = False
+        for c in self.played_user_cards:
+            if c.faction == LIFEBOUND:
+                add = True
+        if add:
+            self.active_player.killing_power += 2
 
     def acquire_hero_3_or_less_to_top_of_deck(self, card=None):
         self.can_acquire_card(buying_power=3)

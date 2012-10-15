@@ -515,6 +515,21 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.active_player.hand), 5)
         self.assertEqual(len(self.game.active_player.phand), 1)
 
+    def test_per_turn_plus_1_kill_per_controlled_mechana_contruct(self):
+        self._fake_user_hand(PER_TURN_PLUS_1_KILL_PER_CONTROLLED_MECHANA_CONTRUCT)
+        self.game.active_player.phand.append(self._get_card('Hedron Link Device'))
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.killing_power, 2)
+
+    def test_per_turn_when_acquire_mechana_construct_put_in_play(self):
+        self._fake_user_hand(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+        user_card = self.game.play_user_card('c0')
+        self.game.active_player.buying_power = 1000
+        self.game.hand[0] = self._get_card('Grand Design')
+        user_card = self.game.play_user_card('u0')
+        self.assertEqual(len(self.game.active_player.discard), 0)
+        self.assertEqual(len(self.game.active_player.phand), 2)
+
 
 if __name__ == '__main__':
     unittest.main()

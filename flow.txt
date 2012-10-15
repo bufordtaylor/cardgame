@@ -1,0 +1,29 @@
+start turn
+    phand play abilities
+    check card action eligibility
+    select card
+        if card has action:
+            choose action
+                do action
+
+do action
+    add instant effects and play abilities
+        if action ability
+            do action
+    move card to appropriate deck
+    unselect card
+
+play abilities
+    if token used:
+        use token
+    else:
+        set token
+    instant ability
+
+
+
+
+
+----------------------------------
+token is a per turn ability
+instant ability happens immediately.

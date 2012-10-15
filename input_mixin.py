@@ -51,6 +51,15 @@ class InputMixin(object):
                 else:
                     print_red(INVALID_CARD % (len(self.hand) - 1))
 
+        if selection.startswith('u'):
+            if ACTION_ACQUIRE_TO_PHAND in card.actions:
+                card.move_to = WHERE_PLAYER_PERSISTENT
+            else:
+                os.system(['clear','cls'][os.name == 'nt'])
+                print_red(INVALID_SELECTION)
+                card = None
+                card_idx = None
+
         return card, card_idx
 
     def handle_select_inputs(self, where, must):
@@ -157,6 +166,8 @@ class InputMixin(object):
         elif selection.startswith('k'):
             return self.defeat_or_acquire(selection)
         elif selection.startswith('b'):
+            return self.defeat_or_acquire(selection)
+        elif selection.startswith('u'):
             return self.defeat_or_acquire(selection)
         elif selection.startswith('p'):
             return self.defeat_or_acquire(selection, persistent=True)

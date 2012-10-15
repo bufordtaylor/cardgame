@@ -18,6 +18,7 @@ class Card(object):
     instant_kill = 0
     instant_buy = 0
     banishable = True
+    move_to = None
 
     def __init__(self, **kwargs):
         self.actions = []
@@ -183,6 +184,14 @@ class Card(object):
                 # check CAN BUY
                 if game.active_player.buying_power >= buy:
                     self.actions.append(ACTION_BUY)
+
+                if (
+                    self.card_type == CARD_TYPE_PERSISTENT and
+                    self.faction == MECHANA and
+                    PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY in game.token
+                ):
+                    self.actions.append(ACTION_ACQUIRE_TO_PHAND)
+                    game.actions.append(ACTION_ACQUIRE_TO_PHAND)
 
     def check_actions(self, game):
         self.actions = []

@@ -310,6 +310,7 @@ class Game(
     def acquire_card(self, card, persistent):
         kill, buy = card.apply_card_tokens(self)
         self.remove_token('minus_buy')
+        self.active_player.buying_power -= buy
 
         if card.card_type == CARD_TYPE_PERSISTENT:
             self.remove_token('minus_construct_buy')
@@ -317,11 +318,17 @@ class Game(
         if card.faction == MECHANA and card.card_type == CARD_TYPE_PERSISTENT:
             self.remove_token('minus_mechana_construct_buy')
 
-        # place acquired card in player's discard deck
-        self.active_player.discard.append(card)
-        self.active_player.buying_power -= buy
         if not persistent:
             self.draw_card()
+
+        if card.move_to == WHERE_PLAYER_PERSISTENT:
+            self.selected_card = card
+            card.move_to = None
+            self.play_user_card_effects(card)
+            self.active_player.phand.append(card)
+        else:
+            # place acquired card in player's discard deck
+            self.active_player.discard.append(card)
         return card
 
     def defeat_card(self, card, persistent):

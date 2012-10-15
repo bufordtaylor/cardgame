@@ -35,6 +35,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         if ACTION_BUY in self.game.actions:
             input_string.append('[b]uy heroes')
             input_string.append('buy [p]ersistent')
+        if ACTION_ACQUIRE_TO_PHAND in self.game.actions:
+            input_string.append('p[u]t in play')
         if ACTION_KILL in self.game.actions:
             input_string.append('[k]ill enemy')
         if ACTION_BANISH in self.game.actions:

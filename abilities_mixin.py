@@ -133,13 +133,18 @@ class AbilitiesMixin(object):
         self.set_token('minus_mechana_construct_buy', 1, END_OF_TURN)
 
     def per_turn_when_acquire_mechana_construct_put_in_play(self, card=None):
-        raise 'Not implemented'
+        self.set_token(PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY, 1, END_OF_TURN)
 
     def per_turn_plus_2_buy_for_mechana_construct_only(self, card=None):
         self.set_token('minus_mechana_construct_buy', 2, END_OF_TURN)
 
     def per_turn_plus_1_kill_per_controlled_mechana_contruct(self, card=None):
-        raise 'Not implemented'
+        # adding one for card if self not in the phand already
+        if card not in self.active_player.phand:
+            self.active_player.killing_power += 1
+        for card in self.active_player.phand:
+            if card.faction == MECHANA:
+                self.active_player.killing_power += 1
 
     def per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self, card=None):
         self.active_player.killing_power += 1

@@ -25,6 +25,71 @@ class TestGame(unittest.TestCase):
             p.end_turn()
         self.game.active_player.start_turn()
 
+    def _build_game_state(self):
+        ret_val = '\n'
+        ret_val += 'GAME HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.hand])
+        ret_val += '\n'
+        ret_val += '\nGAME PERSISTENT HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.phand])
+        ret_val += '\n'
+        ret_val += '\nGAME DISCARD HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.discard])
+        ret_val += '\n'
+        ret_val += 'PLAYER PLAYED CARDS:'
+        ret_val += '\n....'.join([c.name for c in self.game.played_user_cards])
+        ret_val += '\n'
+        ret_val += 'SELECTED CARD:'
+        ret_val += self.game.selected_card.name if self.game.selected_card else ''
+        ret_val += '\n'
+        ret_val += 'PLAYER DISCARD HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.active_player.discard])
+        ret_val += '\n'
+        ret_val += '\nPLAYER HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.active_player.hand])
+        ret_val += '\n'
+        ret_val += '\nPLAYER PERSISTENT HAND:'
+        ret_val += '\n....'.join([c.name for c in self.game.active_player.phand])
+        ret_val += '\n'
+        ret_val += '\nGAME TOKEN:'
+        ret_val += '\n....'.join(['%s - %s' % (k,v) for k,v in self.game.token.iteritems()])
+        ret_val += '\n'
+        ret_val += '\nGAME TOKEN ERASERS:'
+        ret_val += '\n....'.join(['%s - %s' % (k,v) for k,v in self.game.token_erasers.iteritems()])
+        ret_val += '\n'
+        ret_val += '\nGAME USED TOKEN:'
+        ret_val += '\n....'.join(['%s - %s' % (k,v) for k,v in self.game.used_tokens.iteritems()])
+        ret_val += '\n'
+        ret_val += '\nbuy:%s kill:%s points:%s' % (
+            self.game.active_player.buying_power,
+            self.game.active_player.killing_power,
+            self.game.active_player.points
+        )
+
+        return ret_val
+
+
+    # overriding these because there are corner cases where the logic blows up
+    # and I can't find them otherwise unless I know the game state
+    def assertEqual(self, *args, **kwargs):
+        try:
+            thing = super(TestGame, self).assertEqual(*args, **kwargs)
+        except Exception, e:
+            kwargs['msg'] = 'AssertionError: %s\n%s' % (
+                e, self._build_game_state()
+            )
+            super(TestGame, self).assertEqual(*args, **kwargs)
+
+    # overriding these because there are corner cases where the logic blows up
+    # and I can't find them otherwise unless I know the game state
+    def assertTrue(self, *args, **kwargs):
+        try:
+            thing = super(TestGame, self).assertTrue(*args, **kwargs)
+        except Exception, e:
+            kwargs['msg'] = 'AssertionError: %s\n%s' % (
+                e, self._build_game_state()
+            )
+            super(TestGame, self).assertTrue(*args, **kwargs)
 
     def test_game_deck(self):
         """sanity check"""
@@ -309,9 +374,10 @@ class TestGame(unittest.TestCase):
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
             self.assertEqual(card.can_defeat, v[0])
-            self.game.set_token('killing_power', 4, END_OF_ACTION)
+            self.game.set_token('minus_kill', 4, END_OF_ACTION)
             self.game.change_action([ACTION_DEFEAT])
             self.assertEqual(card.can_defeat, v[1])
+            self.game.remove_token('minus_kill')
 
     def test_acquire_eligibility(self):
         test_cards = {
@@ -321,9 +387,10 @@ class TestGame(unittest.TestCase):
         for k, v in test_cards.iteritems():
             card = self._fake_hand(k)
             self.assertEqual(card.can_acquire_to_top, v[0])
-            self.game.set_token('buying_power', 1000, END_OF_ACTION)
+            self.game.set_token('minus_buy', 1000, END_OF_ACTION)
             self.game.change_action([ACTION_ACQUIRE_TO_TOP])
             self.assertEqual(card.can_acquire_to_top, v[1])
+            self.game.remove_token('minus_buy')
 
     def test_ability_point_per_controlled_construct(self):
         self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
@@ -395,10 +462,58 @@ class TestGame(unittest.TestCase):
                 self.game.acquire_card(card, persistent=False)
                 card.check_actions(self.game)
                 self.game.active_player.buying_power = 4
-                #import ipdb; ipdb.set_trace()
                 self.game.hand[0] = card
                 self.assertEqual(card.can_buy, v[2])
 
+    def test_per_turn_plus_2_buy_for_mechana_construct_only(self):
+        self.game.active_player.buying_power = 4 # hedron has 7
+        # check can buy without enough buying power
+        self.game.hand[0] = self._get_card('Hedron Link Device')
+        self.game.check_cards_eligibility()
+        self.assertFalse(self.game.hand[0].can_buy)
+        self._fake_user_hand(PER_TURN_PLUS_2_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
+        user_card = self.game.play_user_card('c0')
+        self.game.check_cards_eligibility()
+        # added two buying power, but not enough
+        self.assertFalse(self.game.hand[0].can_buy)
+        self._fake_user_hand(PER_TURN_PLUS_1_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
+        user_card = self.game.play_user_card('c0')
+        self.game.check_cards_eligibility()
+        # added one buying power, and now it is enough
+        self.assertTrue(self.game.hand[0].can_buy)
+
+        # buy card, check if tokens are used properly
+        self.game.acquire_card(self.game.hand[0], persistent=False)
+        self.assertEqual(self.game.active_player.buying_power, 0)
+        self.game.active_player.buying_power = 4 # hedron has 7
+        self.game.hand[0] = self._get_card('Hedron Link Device')
+        self.game.check_cards_eligibility()
+        self.assertFalse(self.game.hand[0].can_buy)
+
+    def test_per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self):
+        self._fake_hand('Avatar of the Fallen')
+        self._fake_user_hand(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
+        user_card = self.game.play_user_card('c0')
+        self.game.defeat_card(self.game.hand[0], persistent=False)
+        self.assertEqual(self.game.active_player.points, 5)
+
+    def test_per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self):
+        self._fake_user_hand(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.points, 0)
+        self.game.active_player.hand[0] = self._get_card('Wolf Shaman')
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.points, 1)
+        self.game.active_player.hand[0] = self._get_card('Wolf Shaman')
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.points, 1)
+
+    def test_per_turn_when_play_mechana_construct_draw_1_including_this_one(self):
+        self._fake_user_hand(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+        self.assertEqual(len(self.game.active_player.hand), 5)
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(len(self.game.active_player.hand), 5)
+        self.assertEqual(len(self.game.active_player.phand), 1)
 
 
 if __name__ == '__main__':

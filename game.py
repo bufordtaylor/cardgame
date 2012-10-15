@@ -90,11 +90,15 @@ class Game(
         self.can_banish_card(num, where, must_banish=True)
 
     def set_token(self, kind, value, end):
-        self.token[kind] = value
-        self.token_erasers[kind] = end
+        if isinstance( value, (int, long)) and self.token.get(kind):
+            self.token[kind] += value
+            self.token_erasers[kind] = end
+        else:
+            self.token[kind] = value
+            self.token_erasers[kind] = end
 
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
-        self.set_token('killing_power', killing_power, END_OF_ACTION)
+        self.set_token('minus_kill', killing_power, END_OF_ACTION)
         self.change_action([ACTION_DEFEAT])
         self.select_card(1, where=where, must=False)
 
@@ -201,6 +205,21 @@ class Game(
         getattr(self,ABILITY_MAP.get(card.abilities))(card=card)
         self.change_action(ACTION_NORMAL)
 
+    def check_tokens_for_card_played(self, card):
+        if card.faction == MECHANA and card.card_type == CARD_TYPE_PERSISTENT:
+            if PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE in self.token:
+                self.draw_1()
+                self.use_token(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+
+        if card.faction == LIFEBOUND:
+            if (
+                PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT in self.token and
+                card.card_type == CARD_TYPE_HERO
+            ):
+                self.active_player.points += 1
+                self.use_token(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
+
+
     def play_all_user_cards(self, selection):
         if len(self.active_player.hand) == 0:
             print_red('No cards left to play')
@@ -258,6 +277,7 @@ class Game(
         self.active_player.points += card.instant_worth
         print_blue('PLAYED CARD %s' % card)
         self.play_abilities(card)
+        self.check_tokens_for_card_played(card)
 
 
     def defeat_or_acquire(self, selection, persistent=False):
@@ -290,7 +310,13 @@ class Game(
     def acquire_card(self, card, persistent):
         kill, buy = card.apply_card_tokens(self)
         self.remove_token('minus_buy')
-        self.remove_token('minus_construct_buy')
+
+        if card.card_type == CARD_TYPE_PERSISTENT:
+            self.remove_token('minus_construct_buy')
+
+        if card.faction == MECHANA and card.card_type == CARD_TYPE_PERSISTENT:
+            self.remove_token('minus_mechana_construct_buy')
+
         # place acquired card in player's discard deck
         self.active_player.discard.append(card)
         self.active_player.buying_power -= buy
@@ -303,6 +329,11 @@ class Game(
         self.remove_token('minus_kill')
         self.active_player.points += card.instant_worth
         self.active_player.killing_power -= kill
+
+        if PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT in self.token:
+            self.active_player.points += 1
+            self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
+
         if not persistent:
             self.discard.append(card)
             self.draw_card()

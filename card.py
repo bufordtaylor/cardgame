@@ -112,8 +112,13 @@ class Card(object):
         buy = self.buy - game.token.get('minus_buy', 0)
         if self.card_type == CARD_TYPE_PERSISTENT:
             buy -= game.token.get('minus_construct_buy', 0)
+
+        if self.faction == MECHANA and self.card_type == CARD_TYPE_PERSISTENT:
+            buy -= game.token.get('minus_mechana_construct_buy', 0)
+
         if buy < 0:
             buy = 0
+
         return kill, buy
 
     def _determine_actions(self, game_action, game):
@@ -135,12 +140,12 @@ class Card(object):
 
         if game_action == ACTION_DEFEAT:
             if self.card_type == CARD_TYPE_MONSTER:
-                if game.token.get('killing_power', 0) >= kill:
+                if game.active_player.killing_power >= kill:
                     self.actions.append(ACTION_DEFEAT)
 
         if game_action == ACTION_ACQUIRE_TO_TOP:
             if self.card_type != CARD_TYPE_MONSTER:
-                if game.token.get('buying_power', 0) >= buy:
+                if game.token.get('minus_buy', 0) >= buy:
                     self.actions.append(ACTION_ACQUIRE_TO_TOP)
 
         if game_action == ACTION_PLAY:
@@ -170,7 +175,7 @@ class Card(object):
 
         if self.card_type == CARD_TYPE_MONSTER:
             if game_action == ACTION_KILL:
-            # check CAN KILL
+                # check CAN KILL
                 if game.active_player.killing_power >= kill:
                     self.actions.append(ACTION_KILL)
         else:

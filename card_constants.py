@@ -373,7 +373,7 @@ deck_one = [
             'instant_worth': 0,
             'instant_buy': 0,
             'instant_kill': 0,
-            'abilities': PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE,
+            'abilities': PER_TURN_PLUS_2_BUY_FOR_MECHANA_CONSTRUCT_ONLY,
         },
         'count': 2,
     },

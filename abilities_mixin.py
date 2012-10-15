@@ -1,5 +1,6 @@
 import random
 from constants import *
+from abilities_constants import *
 
 class AbilitiesMixin(object):
 
@@ -122,34 +123,37 @@ class AbilitiesMixin(object):
                 self.remove_token(card.abilities)
 
     def per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self, card=None):
-        raise 'Not implemented'
+        self.active_player.buying_power += 1
+        self.set_token(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT, 1, END_OF_TURN)
 
     def per_turn_when_play_mechana_construct_draw_1_including_this_one(self, card=None):
-        raise 'Not implemented'
+        self.set_token(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE, 1, END_OF_TURN)
 
     def per_turn_plus_1_buy_for_mechana_construct_only(self, card=None):
-        raise 'Not implemented'
+        self.set_token('minus_mechana_construct_buy', 1, END_OF_TURN)
 
     def per_turn_when_acquire_mechana_construct_put_in_play(self, card=None):
         raise 'Not implemented'
 
     def per_turn_plus_2_buy_for_mechana_construct_only(self, card=None):
-        raise 'Not implemented'
+        self.set_token('minus_mechana_construct_buy', 2, END_OF_TURN)
 
     def per_turn_plus_1_kill_per_controlled_mechana_contruct(self, card=None):
         raise 'Not implemented'
 
     def per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self, card=None):
-        raise 'Not implemented'
+        self.active_player.killing_power += 1
+        self.set_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT, 1, END_OF_TURN)
 
     def per_turn_plus_3_kill(self, card=None):
+        self.active_player.killing_power += 3
+
+    def per_turn_plus_1_kill(self, card=None):
+        self.active_player.killing_power += 1
+
+    def acquire_or_defeat_any(self, card=None):
         raise 'Not implemented'
 
     def all_contructs_are_mechana(self, card=None):
         raise 'Not implemented'
 
-    def per_turn_plus_1_kill(self, card=None):
-        raise 'Not implemented'
-
-    def acquire_or_defeat_any(self, card=None):
-        raise 'Not implemented'

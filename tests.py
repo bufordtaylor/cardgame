@@ -570,6 +570,66 @@ class TestGame(unittest.TestCase):
         user_card = self.game.play_user_card('c0')
         self.assertEqual(self.game.active_player.buying_power, 1)
 
+    def test_opponents_keep_1_construct(self):
+        self.game.players[1].phand.append(self._get_card('Burrower Mark II'))
+        self.game.players[1].phand.append(self._get_card('Grand Design'))
+        self.game.players[1].phand.append(self._get_card('Snapdragon'))
+        self._fake_hand('Sea Tyrant')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.players[1].phand), 3)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.players[1].phand), 1)
+
+    def test_opponents_keep_1_construct_1_card(self):
+        self.game.players[1].phand.append(self._get_card('Burrower Mark II'))
+        self._fake_hand('Sea Tyrant')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.players[1].phand), 1)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.players[1].phand), 1)
+
+    def test_opponents_keep_1_construct_active_player(self):
+        self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
+        self.game.active_player.phand.append(self._get_card('Grand Design'))
+        self._fake_hand('Sea Tyrant')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.active_player.phand), 2)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.active_player.phand), 2)
+
+    def test_opponents_destroy_1_construct(self):
+        self.game.players[1].phand.append(self._get_card('Burrower Mark II'))
+        self.game.players[1].phand.append(self._get_card('Grand Design'))
+        self.game.players[1].phand.append(self._get_card('Snapdragon'))
+        self._fake_hand('Corrosive Widow')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.players[1].phand), 3)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.players[1].phand), 2)
+
+    def test_opponents_destroy_1_construct_1_card(self):
+        self.game.players[1].phand.append(self._get_card('Burrower Mark II'))
+        self._fake_hand('Corrosive Widow')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.players[1].phand), 1)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.players[1].phand), 0)
+
+    def test_opponents_destroy_1_construct_active_player(self):
+        self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
+        self.game.active_player.phand.append(self._get_card('Grand Design'))
+        self._fake_hand('Corrosive Widow')
+        self.game.active_player.killing_power = 100
+        self.game.check_cards_eligibility()
+        self.assertEqual(len(self.game.active_player.phand), 2)
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.active_player.phand), 2)
+
 
 if __name__ == '__main__':
     unittest.main()

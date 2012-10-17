@@ -72,7 +72,31 @@ class InputMixin(object):
         print_red(INVALID_SELECTION)
         return self.handle_this_or_that(this, that)
 
+    def handle_destroy_one_construct(self, player):
+        selection = player.make_selection(must=True)
+        try:
+            card_idx = int(selection[1:])
+            card = player.phand[card_idx]
+            return card, card_idx
+        except (ValueError, IndexError):
+            card = None
+            card_idx = None
+            os.system(['clear','cls'][os.name == 'nt'])
+            print_red(INVALID_SELECTION)
+        return self.handle_destroy_one_construct(player)
 
+    def handle_keep_one_construct(self, player):
+        selection = player.make_selection(must=True)
+        try:
+            card_idx = int(selection[1:])
+            card = player.phand[card_idx]
+            return card, card_idx
+        except (ValueError, IndexError):
+            card = None
+            card_idx = None
+            os.system(['clear','cls'][os.name == 'nt'])
+            print_red(INVALID_SELECTION)
+        return self.handle_keep_one_construct(player)
 
     def handle_select_inputs(self, where, must):
         """

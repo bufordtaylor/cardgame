@@ -117,7 +117,18 @@ class AbilitiesMixin(object):
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def opponents_keep_1_construct(self, card=None):
-        raise 'Not implemented'
+        for p in self.players:
+            if p == self.active_player:
+                continue
+
+            if len(p.phand) > 1:
+                self.change_action([ACTION_KEEP])
+                keep_card, keep_idx = self.handle_keep_one_construct(p)
+                for idx, card in enumerate(p.phand):
+                    if idx != keep_idx:
+                        p.discard.append(card)
+                p.phand = []
+                p.phand.append(card)
 
     def can_banish_1_center(self, card=None):
         self.change_action([ACTION_BANISH])
@@ -128,7 +139,18 @@ class AbilitiesMixin(object):
         self.can_acquire_card(buying_power=1000)
 
     def opponents_destroy_1_construct(self, card=None):
-        raise 'Not implemented'
+        for p in self.players:
+            if p == self.active_player:
+                continue
+
+            if len(p.phand) == 1:
+                p.discard.append(p.phand.pop())
+
+            if len(p.phand) > 1:
+                self.change_action([ACTION_BANISH_PLAYER_PERSISTENT])
+                destroy_card, destroy_idx = self.handle_keep_one_construct(p)
+                card = p.get_card(destroy_idx, persistent=True, move=True)
+                p.discard.append(card)
 
     def add_random_card_to_hand_from_each_opponent(self, card=None):
         for p in self.players:

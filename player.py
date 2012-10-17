@@ -48,6 +48,12 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         if ACTION_THIS_OR_THAT in self.game.actions:
             input_string.append('[s0]-%s or [s1]-%s' % (this, that))
             end_turn = False
+        if ACTION_KEEP in self.game.actions:
+            input_string.append('[k]eep one persistent')
+            end_turn = False
+        if ACTION_BANISH_PLAYER_PERSISTENT in self.game.actions:
+            input_string.append('[d]iscard one persistent')
+            end_turn = False
         if end_turn:
             input_string.append('[e]nd turn')
         return raw_input(' | '.join(input_string))
@@ -114,5 +120,9 @@ class Computer(Player, ShufflePlayerCardMixin):
                 selection = 'p0'
         elif ACTION_THIS_OR_THAT in self.game.actions:
             selection = 's0'
+        elif ACTION_KEEP in self.game.actions:
+            selection = 'k0'
+        elif ACTION_BANISH_PLAYER_PERSISTENT in self.game.actions:
+            selection = 'd0'
         return selection
 

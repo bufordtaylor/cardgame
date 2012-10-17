@@ -56,12 +56,15 @@ class AbilitiesMixin(object):
         self.must_copy_card()
 
     def defeat_monster_lt_4(self, card=None):
+        self.change_action([ACTION_DEFEAT])
         self.can_defeat_card(killing_power=4)
 
     def defeat_monster_lt_6(self, card=None):
+        self.change_action([ACTION_DEFEAT])
         self.can_defeat_card(killing_power=6)
 
     def acquire_any_center_hero(self, card=None):
+        self.change_action([ACTION_ACQUIRE_TO_TOP])
         self.can_acquire_card(buying_power=1000)
 
     def if_lifebound_hero_plus_2_kill(self, card=None):
@@ -73,13 +76,25 @@ class AbilitiesMixin(object):
             self.active_player.killing_power += 2
 
     def acquire_hero_3_or_less_to_top_of_deck(self, card=None):
+        self.change_action([ACTION_ACQUIRE_TO_TOP])
         self.can_acquire_card(buying_power=3)
 
+    # XXX this is not being used?
     def acquire_or_defeat_any(self, card=None):
-        raise 'Not implemented'
+        self.change_action([ACTION_ACQUIRE_TO_TOP, ACTION_DEFEAT])
+        self.game.active_player.killing_power += 1000
+        self.game.active_player.buying_power += 1000
+        self.select_card(1, where=WHERE_GAME_HAND, must=False)
+        self.game.active_player.killing_power -= 1000
+        self.game.active_player.buying_power -= 1000
 
     def plus_1_buy_or_1_kill(self, card=None):
-        raise 'Not implemented'
+        self.change_action([ACTION_THIS_OR_THAT])
+        choice = self.handle_this_or_that(BUY_1, KILL_1)
+        if choice == BUY_1:
+            self.active_player.buying_power += 1
+        else:
+            self.active_player.killing_power += 1
 
     def plus_1_point_per_controlled_construct(self, card=None):
         factions = []
@@ -109,6 +124,7 @@ class AbilitiesMixin(object):
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
     def cannot_be_banished_acquire_any_center_card(self, card=None):
+        self.change_action([ACTION_ACQUIRE_TO_TOP])
         self.can_acquire_card(buying_power=1000)
 
     def opponents_destroy_1_construct(self, card=None):

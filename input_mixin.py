@@ -62,6 +62,18 @@ class InputMixin(object):
 
         return card, card_idx
 
+    def handle_this_or_that(self, this, that):
+
+        selection = self.active_player.make_selection(this=this, that=that)
+        if selection == 's0':
+            return this
+        elif selection == 's1':
+            return that
+        print_red(INVALID_SELECTION)
+        return self.handle_this_or_that(this, that)
+
+
+
     def handle_select_inputs(self, where, must):
         """
         select card from a location in play,

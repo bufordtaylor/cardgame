@@ -557,6 +557,18 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.token), 0)
         self.assertEqual(player, self.game.active_player)
 
+    @unittest.skip('acquire or defeat any not used yet')
+    def test_acquire_or_defeat_any(self):
+        self._fake_hand('replace this with acquire or defeat any card')
+        self.game.active_player.killing_power = 8
+        self.game.check_cards_eligibility()
+        card = self.game.defeat_or_acquire(selection='k0')
+        self.assertEqual(len(self.game.active_player.discard), 1)
+
+    def test_plus_1_buy_or_1_kill(self):
+        self._fake_user_hand(PLUS_1_BUY_OR_1_KILL)
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(self.game.active_player.buying_power, 1)
 
 
 if __name__ == '__main__':

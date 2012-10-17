@@ -106,7 +106,6 @@ class Game(
 
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
         self.set_token('minus_kill', killing_power, END_OF_ACTION)
-        self.change_action([ACTION_DEFEAT])
         self.select_card(1, where=where, must=False)
 
     def must_acquire_card(self, where=WHERE_GAME_HAND):
@@ -116,7 +115,6 @@ class Game(
         where=WHERE_GAME_HAND, must=False, buying_power=0
     ):
         self.set_token('buying_power', buying_power, END_OF_ACTION)
-        self.change_acction([ACTION_ACQUIRE_TO_TOP])
         self.select_card(1, where=where, must=must)
 
     def can_banish_card(self, num, where, must_banish=False):
@@ -206,6 +204,8 @@ class Game(
 
     def play_abilities(self, card):
         if not card.abilities:
+            self.selected_card = None
+            self.change_action(ACTION_NORMAL)
             return
 
         self.selected_card = None
@@ -348,9 +348,15 @@ class Game(
             self.active_player.points += 1
             self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
 
+        self.selected_card = card
         if not persistent:
-            self.discard.append(card)
             self.draw_card()
+
+        if not persistent:
+            self.discard.append(self.selected_card)
+
+        self.play_abilities(card)
+        self.check_tokens_for_use_once()
         return card
 
     def player_loop(self):

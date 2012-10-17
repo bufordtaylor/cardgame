@@ -23,10 +23,12 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         self.discard = []
         self.shuffle_deck()
 
-    def make_selection(self, must=False):
+    def make_selection(self, must=False, this=None, that=None):
         none_choice = ''
         if not must:
             none_choice = '[n]one '
+
+        end_turn = True
 
         input_string = ['show p[l]ayed cards']
         if ACTION_PLAY in self.game.actions:
@@ -43,7 +45,11 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             input_string.append('[b]anish card %s' % (none_choice))
         if ACTION_DISCARD_FROM_PLAYER_HAND in self.game.actions:
             input_string.append('[d]iscard card %s' % (none_choice))
-        input_string.append('[e]nd turn')
+        if ACTION_THIS_OR_THAT in self.game.actions:
+            input_string.append('[s0]-%s or [s1]-%s' % (this, that))
+            end_turn = False
+        if end_turn:
+            input_string.append('[e]nd turn')
         return raw_input(' | '.join(input_string))
 
     @property
@@ -80,7 +86,7 @@ class Computer(Player, ShufflePlayerCardMixin):
     def is_computer(self):
         return True
 
-    def make_selection(self, must=False):
+    def make_selection(self, must=False, this=None, that=None):
         selection = 'a'
         # order is important here for unit tests
         if ACTION_BUY in self.game.actions or ACTION_KILL in self.game.actions:
@@ -96,6 +102,17 @@ class Computer(Player, ShufflePlayerCardMixin):
             selection = 'b0'
         elif ACTION_COPY in self.game.actions:
             selection = 'c0'
+        elif ACTION_ACQUIRE_TO_TOP in self.game.actions:
+            for idx, card in enumerate(self.game.hand):
+                if card.card_type == CARD_TYPE_MONSTER:
+                    continue
 
+                selection = 'b' + str(idx)
+                break
+
+            if not selection.startswith('b'):
+                selection = 'p0'
+        elif ACTION_THIS_OR_THAT in self.game.actions:
+            selection = 's0'
         return selection
 

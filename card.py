@@ -106,6 +106,16 @@ class Card(object):
             str = '[b]uy'
         return str
 
+    def in_faction(self, game, faction):
+
+        if (ALL_CONTRUCTS_ARE_MECHANA in game.token and
+            self.card_type == CARD_TYPE_PERSISTENT and
+            faction == MECHANA
+        ):
+            return True
+
+        return faction == self.faction
+
     def apply_card_tokens(self, game):
         kill = self.kill - game.token.get('minus_kill', 0)
         if kill < 0:
@@ -114,7 +124,7 @@ class Card(object):
         if self.card_type == CARD_TYPE_PERSISTENT:
             buy -= game.token.get('minus_construct_buy', 0)
 
-        if self.faction == MECHANA and self.card_type == CARD_TYPE_PERSISTENT:
+        if self.in_faction(game, MECHANA) and self.card_type == CARD_TYPE_PERSISTENT:
             buy -= game.token.get('minus_mechana_construct_buy', 0)
 
         if buy < 0:
@@ -187,7 +197,7 @@ class Card(object):
 
                 if (
                     self.card_type == CARD_TYPE_PERSISTENT and
-                    self.faction == MECHANA and
+                    self.in_faction(game, MECHANA) and
                     PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY in game.token
                 ):
                     self.actions.append(ACTION_ACQUIRE_TO_PHAND)

@@ -522,13 +522,41 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.active_player.killing_power, 2)
 
     def test_per_turn_when_acquire_mechana_construct_put_in_play(self):
-        self._fake_user_hand(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+        self._fake_user_hand(PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY)
         user_card = self.game.play_user_card('c0')
         self.game.active_player.buying_power = 1000
         self.game.hand[0] = self._get_card('Grand Design')
-        user_card = self.game.play_user_card('u0')
+        self.game.check_cards_eligibility()
+        user_card = self.game.defeat_or_acquire('u0')
         self.assertEqual(len(self.game.active_player.discard), 0)
         self.assertEqual(len(self.game.active_player.phand), 2)
+
+    def test_all_contructs_are_mechana(self):
+        self._fake_user_hand(ALL_CONTRUCTS_ARE_MECHANA)
+        user_card = self.game.play_user_card('c0')
+        self.game.hand[0] = self._get_card('Yggdrasil Staff')
+        self.assertTrue(self.game.hand[0].in_faction(self.game, LIFEBOUND))
+        self.assertTrue(self.game.hand[0].in_faction(self.game, MECHANA))
+
+    def test_banish_this_extra_turn(self):
+        self._fake_user_hand(BANISH_THIS_EXTRA_TURN)
+        user_card = self.game.play_user_card('c0')
+        self.assertEqual(user_card.can_use, True)
+        self.assertEqual(len(self.game.active_player.phand), 1)
+        self.assertEqual(len(self.game.token), 1)
+        self.assertFalse(self.game.extra_turn)
+        card = self.game.play_user_card_persistent('t0')
+        self.assertEqual(len(self.game.active_player.phand), 0)
+        self.assertEqual(len(self.game.token), 0)
+        self.assertTrue(self.game.extra_turn)
+        player = self.game.active_player
+        player.end_turn()
+        self.game.next_player_turn()
+        self.assertEqual(len(self.game.active_player.phand), 0)
+        self.assertFalse(self.game.extra_turn)
+        self.assertEqual(len(self.game.token), 0)
+        self.assertEqual(player, self.game.active_player)
+
 
 
 if __name__ == '__main__':

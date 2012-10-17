@@ -64,12 +64,14 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             self.game.play_user_card(card)
 
     def end_turn(self):
+
         self.active = False
         self.new_hand()
         self.buying_power = 0
         self.killing_power = 0
         self.game.token = {}
         self.game.token_erasers = {}
+        self.game.used_tokens = {}
         os.system(['clear','cls'][os.name == 'nt'])
 
 class Computer(Player, ShufflePlayerCardMixin):

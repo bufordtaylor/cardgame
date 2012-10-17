@@ -35,6 +35,7 @@ class BaseGame(object):
     selected_card = None #card being banished, copied, etc. Used for testing, not displayed
     debug_counter = 0
     active_card = None
+    extra_turn = False
 
     def __init__(self, points, players=None, deck=None):
         self.points = points
@@ -66,6 +67,12 @@ class Game(
 
     def next_player_turn(self):
         """change player, get new hand, and start turn"""
+        if self.extra_turn:
+            self.played_user_cards = []
+            self.active_player.start_turn()
+            self.extra_turn = False
+            return
+
         self.turn += 1
         if self.turn >= len(self.players):
             self.turn = 0
@@ -206,12 +213,12 @@ class Game(
         self.change_action(ACTION_NORMAL)
 
     def check_tokens_for_card_played(self, card):
-        if card.faction == MECHANA and card.card_type == CARD_TYPE_PERSISTENT:
+        if card.in_faction(self, MECHANA) and card.card_type == CARD_TYPE_PERSISTENT:
             if PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE in self.token:
                 self.draw_1()
                 self.use_token(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
 
-        if card.faction == LIFEBOUND:
+        if card.in_faction(self, LIFEBOUND):
             if (
                 PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT in self.token and
                 card.card_type == CARD_TYPE_HERO
@@ -315,7 +322,7 @@ class Game(
         if card.card_type == CARD_TYPE_PERSISTENT:
             self.remove_token('minus_construct_buy')
 
-        if card.faction == MECHANA and card.card_type == CARD_TYPE_PERSISTENT:
+        if card.in_faction(self, MECHANA) and card.card_type == CARD_TYPE_PERSISTENT:
             self.remove_token('minus_mechana_construct_buy')
 
         if not persistent:

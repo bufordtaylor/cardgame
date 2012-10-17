@@ -13,9 +13,11 @@ class ShuffleMixin(object):
 
         self.hand.append(self.deck.pop())
 
-    def get_card(self, card_idx, persistent=False):
+    def get_card(self, card_idx, persistent=False, move=False):
         if persistent:
             card = self.phand[card_idx]
+            if move:
+                del self.phand[card_idx]
         else:
             card = self.hand[card_idx]
             del self.hand[card_idx]

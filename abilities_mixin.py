@@ -36,8 +36,21 @@ class AbilitiesMixin(object):
         if self.selected_card:
             self.draw_2()
 
-    def banish_this_extra_turn(self, card=None):
-        raise 'Not implemented'
+    def banish_this_extra_turn(self, card=None, action=None):
+        if action == ACTION_USE:
+            for idx, c in enumerate(self.active_player.phand):
+                if c == card:
+                    banish_card = self.active_player.get_card(
+                        idx,
+                        persistent=True,
+                        move=True
+                    )
+                    self.discard.append(banish_card)
+                    self.use_token(card.abilities)
+                    self.extra_turn = True
+                    break
+        else:
+            self.set_token(card.abilities, card, END_OF_TURN)
 
     def copy_effect(self, card=None):
         self.must_copy_card()
@@ -54,13 +67,16 @@ class AbilitiesMixin(object):
     def if_lifebound_hero_plus_2_kill(self, card=None):
         add = False
         for c in self.played_user_cards:
-            if c.faction == LIFEBOUND:
+            if c.in_faction(self, LIFEBOUND):
                 add = True
         if add:
             self.active_player.killing_power += 2
 
     def acquire_hero_3_or_less_to_top_of_deck(self, card=None):
         self.can_acquire_card(buying_power=3)
+
+    def acquire_or_defeat_any(self, card=None):
+        raise 'Not implemented'
 
     def plus_1_buy_or_1_kill(self, card=None):
         raise 'Not implemented'
@@ -143,7 +159,7 @@ class AbilitiesMixin(object):
         if card not in self.active_player.phand:
             self.active_player.killing_power += 1
         for card in self.active_player.phand:
-            if card.faction == MECHANA:
+            if card.in_faction(self,MECHANA):
                 self.active_player.killing_power += 1
 
     def per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self, card=None):
@@ -156,9 +172,6 @@ class AbilitiesMixin(object):
     def per_turn_plus_1_kill(self, card=None):
         self.active_player.killing_power += 1
 
-    def acquire_or_defeat_any(self, card=None):
-        raise 'Not implemented'
-
     def all_contructs_are_mechana(self, card=None):
-        raise 'Not implemented'
+        self.set_token(ALL_CONTRUCTS_ARE_MECHANA, 1, END_OF_TURN)
 

@@ -35,11 +35,11 @@ class PrintMixin(object):
         width = [9,15,10,30,13,13,13,13,13,13,50]
         for idx,card in enumerate(hand):
             if player:
-                card_rows.append(card.card_row(idx, player_card=True))
+                card_rows.append(card.card_row(idx, game=self, player_card=True))
             elif game_phand:
-                card_rows.append(card.card_row(idx, game_phand=True))
+                card_rows.append(card.card_row(idx, game=self, game_phand=True))
             else:
-                card_rows.append(card.card_row(idx))
+                card_rows.append(card.card_row(idx, game=self,))
         print_color_table(card_rows, width=width)
 
     def print_hand(self):

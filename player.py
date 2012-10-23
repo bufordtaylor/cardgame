@@ -73,7 +73,7 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
 
         # check the persistents
         for card in self.phand:
-            self.game.play_user_card(card)
+            self.game.play_user_card_effects(card)
 
     def end_turn(self):
 

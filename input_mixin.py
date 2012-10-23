@@ -182,11 +182,13 @@ class InputMixin(object):
 
     def handle_inputs(self):
         """for the main loop, when a player is playing cards"""
+        print 'ACTIONS', self.actions
         self.check_cards_eligibility()
         self.print_user_status()
         self.print_phand()
         self.print_hand()
         self.print_user_hand()
+        self.print_user_phand()
         selection = self.active_player.make_selection()
         if selection == 'e':
             self.active_player.end_turn()

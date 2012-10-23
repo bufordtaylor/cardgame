@@ -288,6 +288,18 @@ class TestGame(unittest.TestCase):
         self.assertTrue(len(self.game.active_player.discard), 0)
         self.assertTrue(len(self.game.discard), 2)
 
+    def test_instant_ability_can_banish_1_hand_or_discard(self):
+        self._fake_user_hand(CAN_BANISH_1_HAND_OR_DISCARD)
+        card = self._get_card('Voidthirster')
+        self.game.active_player.discard.append(card)
+        self.assertTrue(len(self.game.active_player.discard), 1)
+        card = self.game.play_user_card('c0')
+        selected_card = self.game.selected_card
+        self.assertTrue(len(self.game.active_player.hand), 4)
+        self.assertTrue(len(self.game.active_player.discard), 0)
+
+
+
     def test_instant_ability_discard(self):
         self._fake_user_hand(IF_DISCARD_DRAW_TWO)
         card = self.game.play_user_card('c0')

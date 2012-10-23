@@ -108,6 +108,12 @@ class AbilitiesMixin(object):
         # right now it is only doing it on the back end
         self.set_token('minus_construct_buy', 1, END_OF_TURN)
 
+    def can_banish_1_hand_or_discard(self, card=None):
+        self.change_action(
+            [ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD]
+        )
+        self.can_banish_card(num=1, where=None)
+
     def can_banish_1_hand_or_discard_and_center(self, card=None):
         self.change_action(
             [ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD]

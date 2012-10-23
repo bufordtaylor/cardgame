@@ -29,42 +29,54 @@ class Card(object):
     def __repr__(self):
         return self.name
 
-    def card_row(self, idx, player_card=False, game_phand=False):
+    def card_row(self, idx, game, player_card=False, game_phand=False):
+        print 'card actions', self.actions
+        color = bcolors.WHITE
+        if self.mark_for_action:
+            color = bcolors.GREEN
+        elif self.mark_for_kill:
+            color = bcolors.RED
         if player_card:
-            instruction = (bcolors.WHITE, '%s:%s' % ('[c]ard', idx))
+            instruction = (color, '%s:%s' % ('[c]ard', idx))
         else:
-            instruction = (bcolors.WHITE, ' ')
-        if ACTION_PLAY in self.actions:
+            instruction = (color, ' ')
+        if self.mark_for_action or self.mark_for_kill:
             if player_card:
-                instruction = (bcolors.WHITE, '%s:%s' % ('[c]ard', idx))
+                instruction = (color, '%s:%s' % ('[c]ard', idx))
             elif game_phand:
-                instruction = (bcolors.WHITE, '%s:%s' % ('[p]ers', idx))
+                instruction = (color, '%s:%s' % ('[p]ers', idx))
             else:
-                instruction = (bcolors.WHITE, '%s:%s' % (
+                instruction = (color, '%s:%s' % (
                     self.kill_buy_acquire, idx)
                 )
 
         attr_list = [
             instruction,
-            (bcolors.PURPLE, self.card_type_string),
-            self.card_faction,
-            (bcolors.BLUE, self.name),
+            (color, self.card_type_string),
+            self.card_faction(color),
+            (color, self.name),
         ]
 
         attr_dict = {}
 
         numbered_attrs = [
-            (bcolors.YELLOW, 'buy'),
-            (bcolors.RED, 'kill'),
-            (bcolors.GREEN, 'worth'),
-            (bcolors.YELLOW, 'instant_buy'),
-            (bcolors.RED, 'instant_kill'),
-            (bcolors.GREEN, 'instant_worth'),
-            (bcolors.BLUE, 'abilities'),
+            (color, 'buy'),
+            (color, 'kill'),
+            (color, 'worth'),
+            (color, 'instant_buy'),
+            (color, 'instant_kill'),
+            (color, 'instant_worth'),
+            (color, 'abilities'),
         ]
 
         for k, v in numbered_attrs:
-            attr_list.append((k, getattr(self, v)))
+            value = getattr(self, v)
+            if v == 'buy' and game.token.get('minus_buy', 0) > 0:
+                value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
+            if v == 'kill' and game.token.get('minus_kill', 0) > 0:
+                value = "%s (-%s)" % (value, game.token.get('minus_kill', 0))
+
+            attr_list.append((k, value))
         return prepare_card_row(attr_list)
 
     @property
@@ -80,19 +92,18 @@ class Card(object):
             str = 'STARTING'
         return str
 
-    @property
-    def card_faction(self):
-        str = (bcolors.RED, 'MONSTER')
+    def card_faction(self, color):
+        str = (color, 'MONSTER')
         if self.faction == VOID:
-            str = (bcolors.PURPLE, 'VOID')
+            str = (color, 'VOID')
         elif self.faction == MECHANA:
-            str = (bcolors.YELLOW, 'MECHANA')
+            str = (color, 'MECHANA')
         elif self.faction == ENLIGHTENED:
-            str = (bcolors.BLUE, 'ENLIGHTENED')
+            str = (color, 'ENLIGHTENED')
         elif self.faction == LIFEBOUND:
-            str = (bcolors.GREEN, 'LIFEBOUND')
+            str = (color, 'LIFEBOUND')
         elif self.is_starting_card:
-            str = (bcolors.WHITE, 'STARTING')
+            str = (color, 'STARTING')
         return str
 
     @property
@@ -232,6 +243,29 @@ class Card(object):
     @property
     def is_starting_card(self):
         return self.faction == STARTING
+
+    @property
+    def mark_for_action(self):
+        actions = [
+            ACTION_BUY,
+            ACTION_BANISH,
+            ACTION_COPY,
+            ACTION_DISCARD_FROM_PLAYER_HAND,
+            ACTION_ACQUIRE_TO_PHAND,
+            ACTION_ACQUIRE_TO_HAND,
+            ACTION_ACQUIRE_TO_TOP,
+            ACTION_ACQUIRE_TO_DISCARD,
+            ACTION_USE,
+            ACTION_BANISH_PLAYER_PERSISTENT,
+            ACTION_BANISH_PLAYER_DISCARD,
+            ACTION_BANISH_PLAYER_HAND,
+        ]
+        return any(self._is_eligible_for_action(action) for action in actions)
+
+    @property
+    def mark_for_kill(self):
+        actions = [ACTION_KILL, ACTION_DEFEAT]
+        return any(self._is_eligible_for_action(action) for action in actions)
 
     @property
     def can_buy(self):

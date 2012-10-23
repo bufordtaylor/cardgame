@@ -245,6 +245,8 @@ class Game(
             c.check_actions(self)
         for c in self.active_player.phand:
             c.check_actions(self)
+        for c in self.active_player.hand:
+            c.check_actions(self)
         for c in self.active_player.discard:
             c.check_actions(self)
 
@@ -360,6 +362,7 @@ class Game(
         return card
 
     def player_loop(self):
+        print_red('remaining points %s' % self.points)
         if self.active_player.active:
             self.handle_inputs()
         else:

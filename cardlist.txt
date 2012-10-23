@@ -1,0 +1,48 @@
+o  Arbiter of the Precipice
+o  Arha Initiate
+o  Arha Templar
+o  Ascetic of the Lidless Eye
+o  Avatar Golem
+o  Avatar of the Fallen
+x  Burrower Mark II
+o  Cetra, Weaver of Stars
+o  Corrosive Widow
+x  Demon Slyyer
+o  Druids of the Stone Circle
+o  Earth Tyrant
+o  Emri, One with the void
+o  Flytrap Witch
+o  Grand Design
+o  Hedron Cannon
+o  Hedron Link Device
+o  Kor, the Ferrormancer
+o  Landtalker
+o  Lifebound Initiate
+o  Master Dhartha
+x  Mechana Insitute
+o  Mephit
+o  Mistake of Creation
+o  Murasama
+o  Oziah the Peerless
+o  Reactor Monk
+o  Rocker Courier x-99
+o  Runic Lycanthrope
+o  Samael Trickster
+o  Sea Tyrant
+o  Seer of the Forked Path
+o  Shade of the Black Witch
+o  Shadow Star
+o  Snapdragon
+x  Spike Vixen
+o  Tablet of Time\'s Dawn
+o  Temple Librarian
+o  The All-Seeing Eye
+o  Tormented Soul
+o  Twofold Askara
+o  Void Initiate
+o  Voidthirster
+o  Watchmaker Altar
+o  Wind Tryant
+x  Wolf Shaman
+o  Xeron, Duke of Lies
+INVESTIGATE - o  Yggdrasil Staff

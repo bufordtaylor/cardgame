@@ -18,7 +18,7 @@ NEXT_CONSTRUCT_1_LESS_BUY = 'The next Construct you acquire this turn costs 1 bu
 CAN_BANISH_1_HAND_OR_DISCARD_AND_CENTER = 'You may banish a card in the center row and/or a card in your discard pile'
 OPPONENTS_KEEP_1_CONSTRUCT = 'Each opponent must choose a Construct they control and put the rest into their discard pile'
 CAN_BANISH_1_CENTER = 'You may banish a card in the center row'
-CANNOT_BE_BANISHED_ACQUIRE_ANY_CENTER_CARD= 'This monster cant be banished unless defeated. Rw: gain +4h. Acquire or defeat any other card in the center row'
+CANNOT_BE_BANISHED_ACQUIRE_ANY_CENTER_CARD= 'This monster cant be banished unless defeated. Rw: gain 4 points. Acquire or defeat any other card in the center row'
 OPPONENTS_DESTROY_1_CONSTRUCT = 'Each opponent must put a Contruct he controls into his discard pile'
 ADD_RANDOM_CARD_TO_HAND_FROM_EACH_OPPONENT = 'Take a card at random from each opponents hand and add that card to your hand'
 PER_TURN_DRAW_1 = 'Once per turn, you may draw a card'
@@ -30,10 +30,10 @@ PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY = 'Once per turn, when you a
 PER_TURN_PLUS_2_BUY_FOR_MECHANA_CONSTRUCT_ONLY = 'Once per turn, gain 2 buy. You may spend it only to acquire Mechana Constructs'
 PER_TURN_PLUS_1_KILL_PER_CONTROLLED_MECHANA_CONTRUCT = 'Once per turn, gain 1 kill for each Mechana Construct you control'
 ALL_CONTRUCTS_ARE_MECHANA = 'You may treat all Constructs as Mechana Constructs'
-PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT = 'Once per turn, gain 1 kill. The first time you defeat a Monster in the center row each turn, gain +1h'
+PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT = 'Once per turn, gain 1 kill. The first time you defeat a Monster in the center row each turn, gain 1 point'
 CAN_BANISH_1_HAND_OR_DISCARD = 'You may banish a card in your hand or discard pile'
 PER_TURN_PLUS_3_KILL = 'Once per turn, gain 3 kill'
-PER_TURN_PLUS_1_KILL = 'Once per turn, gain +1p'
+PER_TURN_PLUS_1_KILL = 'Once per turn, gain 1 kill'
 ACQUIRE_OR_DEFEAT_ANY = 'Acquire or defeat any card without paying the cost'
 
 # these are directly mapped to function names

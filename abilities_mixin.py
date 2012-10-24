@@ -76,8 +76,10 @@ class AbilitiesMixin(object):
             self.active_player.killing_power += 2
 
     def acquire_hero_3_or_less_to_top_of_deck(self, card=None):
+        self.set_token('hero_buying_power', 3, END_OF_ACTION)
         self.change_action([ACTION_ACQUIRE_TO_TOP])
-        self.can_acquire_card(buying_power=3)
+        card, idx = self.handle_action_acquire_to_top(self.active_player)
+        self.move_card(card, idx, WHERE_GAME_HAND)
 
     # XXX this is not being used?
     def acquire_or_defeat_any(self, card=None):

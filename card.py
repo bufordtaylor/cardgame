@@ -30,7 +30,8 @@ class Card(object):
         return self.name
 
     def card_row(self, idx, game, player_card=False, game_phand=False):
-        print 'card actions', self.actions
+        """this is for printing purposes only"""
+        print 'name:', self.name, ','.join([ACTION_DICT[a] for a in self.actions])
         color = bcolors.WHITE
         if self.mark_for_action:
             color = bcolors.GREEN
@@ -71,8 +72,14 @@ class Card(object):
 
         for k, v in numbered_attrs:
             value = getattr(self, v)
-            if v == 'buy' and game.token.get('minus_buy', 0) > 0:
-                value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
+            if v == 'buy':
+                if game.token.get('minus_buy', 0) > 0:
+                    value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
+                if (
+                    self.card_type == CARD_TYPE_MONSTER and
+                    game.token.get('minus_mechana_construct_buy', 0) > 0
+                ):
+                    value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
             if v == 'kill' and game.token.get('minus_kill', 0) > 0:
                 value = "%s (-%s)" % (value, game.token.get('minus_kill', 0))
 
@@ -152,7 +159,7 @@ class Card(object):
                 self.actions.append(ACTION_DISCARD_FROM_PLAYER_HAND)
 
         if game_action == ACTION_COPY:
-            if self in game.played_user_cards:
+            if id(self) in [id(c) for c in game.played_user_cards]:
                 self.actions.append(ACTION_COPY)
 
         # unbanishable cards have a banishable token attached to them
@@ -166,13 +173,16 @@ class Card(object):
                     self.actions.append(ACTION_DEFEAT)
 
         if game_action == ACTION_ACQUIRE_TO_TOP:
+            if self.card_type == CARD_TYPE_HERO:
+                if game.token.get('hero_buying_power', 0) >= buy:
+                    self.actions.append(ACTION_ACQUIRE_TO_TOP)
             if self.card_type != CARD_TYPE_MONSTER:
                 if game.token.get('minus_buy', 0) >= buy:
                     self.actions.append(ACTION_ACQUIRE_TO_TOP)
 
         if game_action == ACTION_PLAY:
             # if it's in the player's hand, it's always eligible
-            if self in game.active_player.hand:
+            if id(self) in [id(c) for c in game.active_player.hand]:
                 self.actions.append(ACTION_PLAY)
 
             # tokens are set for persistent player cards
@@ -181,10 +191,13 @@ class Card(object):
             for token, card in game.token.iteritems():
                 if (
                     game.token.get(token) == card and
-                    game.used_tokens.get(token) != card
+                    game.used_tokens.get(token) != card and
+                    id(self) in [id(c) for c in game.active_player.phand]
                 ):
                     self.actions.append(ACTION_USE)
 
+        # we don't want cards in the user's hands to be marked for buy
+        # or for kill
         if id(self) in [id(c) for c in game.active_player.hand]:
             return
 

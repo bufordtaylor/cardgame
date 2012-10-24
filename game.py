@@ -31,7 +31,7 @@ class BaseGame(object):
     points = 0
     turn = 0 # player's turn
     game_active = True
-    debug = True
+    debug = False
     selected_card = None #card being banished, copied, etc. Used for testing, not displayed
     debug_counter = 0
     active_card = None
@@ -199,8 +199,13 @@ class Game(
             self.move_card(card, card_idx, from_deck=where)
 
     def change_action(self, actions):
+        print 'CHANGING ACTION'
+        print 'from:', ','.join([ACTION_DICT[a] for a in self.actions])
         self.actions = actions
+        print 'to:', ','.join([ACTION_DICT[a] for a in self.actions])
         self.check_cards_eligibility()
+        print 'game tokens', self.token
+
 
     def play_abilities(self, card):
         if not card.abilities:
@@ -389,7 +394,7 @@ def test_deck():
 
 def main():
     deck = RealDeck().deck
-    game = Game(deck=deck, points=15)
+    game = Game(deck=deck, points=55)
     game.played_user_cards = []
     # calling end_turn here to reset player hand on start up
     for p in game.players:

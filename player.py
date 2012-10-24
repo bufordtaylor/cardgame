@@ -37,6 +37,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         if ACTION_BUY in self.game.actions:
             input_string.append('[b]uy heroes')
             input_string.append('buy [p]ersistent')
+        if ACTION_COPY in self.game.actions:
+            input_string.append('[s]elect card to copy')
         if ACTION_ACQUIRE_TO_PHAND in self.game.actions:
             input_string.append('p[u]t in play')
         if ACTION_KILL in self.game.actions:
@@ -53,6 +55,13 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             end_turn = False
         if ACTION_BANISH_PLAYER_PERSISTENT in self.game.actions:
             input_string.append('[d]iscard one persistent')
+            end_turn = False
+        if ACTION_BANISH_PLAYER_HAND in self.game.actions:
+            input_string.append('[b]anish card %s' % (none_choice))
+        if ACTION_BANISH_PLAYER_DISCARD in self.game.actions:
+            input_string.append('[b]anish card %s' % (none_choice))
+        if ACTION_ACQUIRE_TO_TOP in self.game.actions:
+            input_string.append('[s]elect card %s' % (none_choice))
             end_turn = False
         if end_turn:
             input_string.append('[e]nd turn')
@@ -107,16 +116,14 @@ class Computer(Player, ShufflePlayerCardMixin):
         elif ACTION_BANISH_PLAYER_HAND in self.game.actions:
             selection = 'b0'
         elif ACTION_COPY in self.game.actions:
-            selection = 'c0'
+            selection = 's0'
         elif ACTION_ACQUIRE_TO_TOP in self.game.actions:
+            selection = None
             for idx, card in enumerate(self.game.hand):
-                if card.card_type == CARD_TYPE_MONSTER:
-                    continue
+                if card.can_acquire_to_top:
+                    selection = 's' + str(idx)
 
-                selection = 'b' + str(idx)
-                break
-
-            if not selection.startswith('b'):
+            if not selection:
                 selection = 'p0'
         elif ACTION_THIS_OR_THAT in self.game.actions:
             selection = 's0'

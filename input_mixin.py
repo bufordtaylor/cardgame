@@ -64,6 +64,7 @@ class InputMixin(object):
 
     def handle_this_or_that(self, this, that):
 
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
         selection = self.active_player.make_selection(this=this, that=that)
         if selection == 's0':
             return this
@@ -73,6 +74,7 @@ class InputMixin(object):
         return self.handle_this_or_that(this, that)
 
     def handle_destroy_one_construct(self, player):
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
         selection = player.make_selection(must=True)
         try:
             card_idx = int(selection[1:])
@@ -86,6 +88,7 @@ class InputMixin(object):
         return self.handle_destroy_one_construct(player)
 
     def handle_keep_one_construct(self, player):
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
         selection = player.make_selection(must=True)
         try:
             card_idx = int(selection[1:])
@@ -98,11 +101,31 @@ class InputMixin(object):
             print_red(INVALID_SELECTION)
         return self.handle_keep_one_construct(player)
 
+    def handle_action_acquire_to_top(self, player):
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
+        self.print_hand()
+        self.print_phand()
+        selection = player.make_selection(must=True)
+        try:
+            card_idx = int(selection[1:])
+            if selection.startswith('s'):
+                card = self.hand[card_idx]
+            else:
+                card = self.phand[card_idx]
+            return card, card_idx
+        except (ValueError, IndexError):
+            card = None
+            card_idx = None
+            os.system(['clear','cls'][os.name == 'nt'])
+            print_red(INVALID_SELECTION)
+        return self.handle_action_acquire_to_top(player)
+
     def handle_select_inputs(self, where, must):
         """
         select card from a location in play,
         must indicates that they must select a card
         """
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions]), 'WHERE:', where, 'must:', must
         player_card=False
         played_card=False
         persistent=False
@@ -182,7 +205,7 @@ class InputMixin(object):
 
     def handle_inputs(self):
         """for the main loop, when a player is playing cards"""
-        print 'ACTIONS', self.actions
+        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
         self.check_cards_eligibility()
         self.print_user_status()
         self.print_phand()

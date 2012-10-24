@@ -404,6 +404,19 @@ class TestGame(unittest.TestCase):
             self.assertEqual(card.can_acquire_to_top, v[1])
             self.game.remove_token('minus_buy')
 
+    def test_acquire_hero_3_or_less_to_top_of_deck(self):
+        perscard = self._get_card('Voidthirster')
+        monstercard = self._get_card('Avatar of the Fallen')
+        herocard = self._get_card('Wolf Shaman')
+        expensiveherocard = self._get_card('Landtalker')
+        self.game.hand[0] = perscard
+        self.game.hand[1] = monstercard
+        self.game.hand[2] = expensiveherocard
+        self.game.hand[3] = herocard
+        self._fake_user_hand(ACQUIRE_HERO_3_OR_LESS_TO_TOP_OF_DECK)
+        usercard = self.game.play_user_card('c0')
+        self.assertTrue(herocard in self.game.active_player.deck)
+
     def test_ability_point_per_controlled_construct(self):
         self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
         self.game.active_player.phand.append(self._get_card('Grand Design'))

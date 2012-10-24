@@ -8,7 +8,7 @@ x  Burrower Mark II
 o  Cetra, Weaver of Stars
 o  Corrosive Widow
 x  Demon Slyyer
-o  Druids of the Stone Circle
+INVESTIGATE - o  Druids of the Stone Circle
 o  Earth Tyrant
 o  Emri, One with the void
 o  Flytrap Witch
@@ -20,8 +20,8 @@ o  Landtalker
 o  Lifebound Initiate
 o  Master Dhartha
 x  Mechana Insitute
-o  Mephit
-o  Mistake of Creation
+x  Mephit
+INVESTIGATE - o  Mistake of Creation
 o  Murasama
 o  Oziah the Peerless
 o  Reactor Monk
@@ -35,10 +35,10 @@ o  Shadow Star
 o  Snapdragon
 x  Spike Vixen
 o  Tablet of Time\'s Dawn
-o  Temple Librarian
+x  Temple Librarian
 o  The All-Seeing Eye
 o  Tormented Soul
-o  Twofold Askara
+INVESTIGATE - o  Twofold Askara
 o  Void Initiate
 o  Voidthirster
 o  Watchmaker Altar

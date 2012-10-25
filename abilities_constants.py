@@ -77,6 +77,9 @@ ABILITY_MAP = {
     ACQUIRE_OR_DEFEAT_ANY: 'acquire_or_defeat_any',
 }
 
-PERSISTENT_LIST = [
-    PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS
+# players must explicitly use these card for their effect to take place
+PERSISTENT_USE_LIST = [
+    PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS,
+    PER_TURN_DRAW_1,
+    BANISH_THIS_EXTRA_TURN,
 ]

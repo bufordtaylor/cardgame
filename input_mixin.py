@@ -75,6 +75,7 @@ class InputMixin(object):
 
     def handle_destroy_one_construct(self, player):
         print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
+        #player.print_phand()
         selection = player.make_selection(must=True)
         try:
             card_idx = int(selection[1:])
@@ -89,6 +90,7 @@ class InputMixin(object):
 
     def handle_keep_one_construct(self, player):
         print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
+        #player.print_phand()
         selection = player.make_selection(must=True)
         try:
             card_idx = int(selection[1:])

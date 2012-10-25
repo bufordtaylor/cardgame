@@ -289,6 +289,9 @@ class Game(
         self.active_player.killing_power += card.instant_kill
         self.active_player.buying_power += card.instant_buy
         self.active_player.points += card.instant_worth
+        self.points -= card.instant_worth
+        if self.points < 0:
+            self.points = 0
         print_blue('PLAYED CARD %s' % card)
         self.play_abilities(card)
         self.check_tokens_for_card_played(card)

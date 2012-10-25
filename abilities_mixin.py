@@ -81,14 +81,16 @@ class AbilitiesMixin(object):
         card, idx = self.handle_action_acquire_to_top(self.active_player)
         self.move_card(card, idx, WHERE_GAME_HAND)
 
-    # XXX this is not being used?
+    def cannot_be_banished_acquire_any_center_card(self, card=None):
+        self.acquire_or_defeat_any(card)
+
     def acquire_or_defeat_any(self, card=None):
         self.change_action([ACTION_ACQUIRE_TO_TOP, ACTION_DEFEAT])
-        self.game.active_player.killing_power += 1000
-        self.game.active_player.buying_power += 1000
+        self.active_player.killing_power += 1000
+        self.active_player.buying_power += 1000
         self.select_card(1, where=WHERE_GAME_HAND, must=False)
-        self.game.active_player.killing_power -= 1000
-        self.game.active_player.buying_power -= 1000
+        self.active_player.killing_power -= 1000
+        self.active_player.buying_power -= 1000
 
     def plus_1_buy_or_1_kill(self, card=None):
         self.change_action([ACTION_THIS_OR_THAT])
@@ -142,9 +144,6 @@ class AbilitiesMixin(object):
         self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
-    def cannot_be_banished_acquire_any_center_card(self, card=None):
-        self.change_action([ACTION_ACQUIRE_TO_TOP])
-        self.can_acquire_card(buying_power=1000)
 
     def opponents_destroy_1_construct(self, card=None):
         for p in self.players:

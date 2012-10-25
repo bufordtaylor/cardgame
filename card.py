@@ -48,7 +48,7 @@ class Card(object):
                 instruction = (color, '%s:%s' % ('[p]ers', idx))
             else:
                 instruction = (color, '%s:%s' % (
-                    self.kill_buy_acquire, idx)
+                    self.kill_buy_acquire(game), idx)
                 )
 
         attr_list = [
@@ -75,8 +75,13 @@ class Card(object):
             if v == 'buy':
                 if game.token.get('minus_buy', 0) > 0:
                     value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
+
+                if (self.card_type == CARD_TYPE_PERSISTENT and game.token.get('minus_construct_buy', 0) > 0):
+                    value = "%s (-%s)" % (value, game.token.get('minus_construct_buy', 0))
+
                 if (
-                    self.card_type == CARD_TYPE_MONSTER and
+                    self.card_type == CARD_TYPE_PERSISTENT and
+                    self.in_faction(game, MECHANA) and
                     game.token.get('minus_mechana_construct_buy', 0) > 0
                 ):
                     value = "%s (-%s)" % (value, game.token.get('minus_buy', 0))
@@ -113,15 +118,17 @@ class Card(object):
             str = (color, 'STARTING')
         return str
 
-    @property
-    def kill_buy_acquire(self):
+    def kill_buy_acquire(self, game):
         str = '[c]ard'
-        if self.is_monster:
-            str = '[k]ill'
-        elif self.is_hero:
-            str = '[b]uy'
-        elif self.is_persistent:
-            str = '[b]uy'
+        if ACTION_BUY in game.actions or ACTION_KILL in game.actions:
+            if self.is_monster:
+                str = '[k]ill'
+            elif self.is_hero:
+                str = '[b]uy'
+            elif self.is_persistent:
+                str = '[b]uy'
+        else:
+            str = '[s]elect'
         return str
 
     def in_faction(self, game, faction):
@@ -192,7 +199,8 @@ class Card(object):
                 if (
                     game.token.get(token) == card and
                     game.used_tokens.get(token) != card and
-                    id(self) in [id(c) for c in game.active_player.phand]
+                    id(self) in [id(c) for c in game.active_player.phand] and
+                    self.abilities in PERSISTENT_USE_LIST
                 ):
                     self.actions.append(ACTION_USE)
 
@@ -203,7 +211,7 @@ class Card(object):
 
         if id(self) in [id(c) for c in game.active_player.phand]:
             if (not game.used_tokens.get(self.abilities) and
-                self.abilities in PERSISTENT_LIST
+                self.abilities in PERSISTENT_USE_LIST
             ):
                 getattr(game,ABILITY_MAP.get(self.abilities))(card=self)
             return
@@ -225,7 +233,8 @@ class Card(object):
                     PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY in game.token
                 ):
                     self.actions.append(ACTION_ACQUIRE_TO_PHAND)
-                    game.actions.append(ACTION_ACQUIRE_TO_PHAND)
+                    if ACTION_ACQUIRE_TO_PHAND not in game.actions:
+                        game.actions.append(ACTION_ACQUIRE_TO_PHAND)
 
     def check_actions(self, game):
         self.actions = []

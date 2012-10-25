@@ -43,6 +43,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             input_string.append('p[u]t in play')
         if ACTION_KILL in self.game.actions:
             input_string.append('[k]ill enemy')
+        if ACTION_USE in self.game.actions:
+            input_string.append('[t] use pers')
         if ACTION_BANISH in self.game.actions:
             input_string.append('[b]anish card %s' % (none_choice))
         if ACTION_DISCARD_FROM_PLAYER_HAND in self.game.actions:
@@ -79,6 +81,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
 
     def start_turn(self):
         self.active = True
+        #self.buying_power += 1000
+        #self.killing_power += 1000
 
         # check the persistents
         for card in self.phand:
@@ -122,6 +126,7 @@ class Computer(Player, ShufflePlayerCardMixin):
             for idx, card in enumerate(self.game.hand):
                 if card.can_acquire_to_top:
                     selection = 's' + str(idx)
+                    break
 
             if not selection:
                 selection = 'p0'

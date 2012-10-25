@@ -20,6 +20,7 @@ class Deck(object):
 
 
 buy_3 = {
+        'cid': 0,
         'name': 'mystic',
         'worth': 1,
         'card_type': 1,
@@ -31,6 +32,7 @@ buy_3 = {
         'faction': STARTING,
 }
 buy_2 = {
+        'cid': 1,
         'name': 'heavy infantry',
         'worth': 1,
         'card_type': 1,
@@ -42,6 +44,7 @@ buy_2 = {
         'faction': STARTING,
 }
 kill_1 = {
+        'cid': 2,
         'name': 'cultist',
         'worth': 0,
         'card_type': 0,
@@ -57,6 +60,7 @@ persistant_game_hand = [buy_3, buy_2, kill_1]
 
 starter_cards = [
     {
+        'cid': 3,
         'name': 'apprentice',
         'worth': 0,
         'card_type': 1,
@@ -68,6 +72,7 @@ starter_cards = [
         'faction': STARTING,
     },
     {
+        'cid': 4,
         'name': 'militia',
         'worth': 0,
         'card_type': 1,
@@ -81,12 +86,13 @@ starter_cards = [
 ]
 
 class PlayerStartDeck(Deck):
-    def __init__(self, num_cards = 9):
+    def __init__(self, game, num_cards = 9):
         self.deck = []
         for i in xrange(0,2):
             card_dict = starter_cards[i]
             for x in xrange(0,8 if i == 0 else 2):
                 card = Card(
+                    iid=game.next_iid,
                     name=card_dict['name'],
                     worth=card_dict['worth'],
                     card_type=card_dict['card_type'],
@@ -121,8 +127,16 @@ class RealDeck(Deck):
         self.deck = []
         for obj in deck_one:
             for i in xrange(obj['count']+1):
-                self.deck.append(Card(**obj['card']))
+                self.deck.append(Card(iid=len(self.deck), **obj['card']))
         super(RealDeck, self).__init__()
+
+class SimDeck(Deck):
+    def __init__(self):
+        self.deck = []
+        for obj in deck_one:
+            for i in xrange(obj['count']+1):
+                self.deck.append(Card(iid=len(self.deck), **obj['card']))
+        super(SimDeck, self).__init__()
 
 
 CARD_ATTRIBUTES = {

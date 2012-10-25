@@ -15,13 +15,14 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
     killing_power = 0
     game = None
 
-    def __init__(self, name):
+    def __init__(self, name, game):
         self.name = name
-        self.deck = PlayerStartDeck().deck
+        self.deck = PlayerStartDeck(game).deck
         self.hand = []
         self.phand = []
         self.discard = []
         self.shuffle_deck()
+
 
     def make_selection(self, must=False, this=None, that=None):
         none_choice = ''

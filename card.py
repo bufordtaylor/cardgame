@@ -7,6 +7,8 @@ from colors import (
 )
 
 class Card(object):
+    cid = -1 # card ID
+    iid = -1 # instance ID
     name = None
     worth = 0
     card_type = None

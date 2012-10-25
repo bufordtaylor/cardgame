@@ -1,6 +1,6 @@
 import random
 import os
-from player import Player
+from player import Player, Computer
 from card import Card
 from abilities_constants import *
 from constants import *
@@ -21,9 +21,6 @@ from colors import (
     print_green, print_purple,print_color_table,
 )
 
-
-
-
 # created for mixin use
 # mixin's are used here for code organization
 class BaseGame(object):
@@ -38,15 +35,21 @@ class BaseGame(object):
     extra_turn = False
 
     def __init__(self, points, players=None, deck=None):
+        self.players = []
         self.points = points
-        self.players = players or test_players()
         self.discard = []
         self.hand = []
+        # doing some weird stuff with next_iid so we have to init phand and
+        # deck before this
+        self.phand = []
+        self.deck = []
         self.played_user_cards = []
         self.active_card = []
         self.test_deck = test_deck()
         self.deck = deck or self.test_deck
-        self.phand = [Card(**c) for c in persistant_game_hand]
+        self.phand = [Card(iid=self.next_iid, **c) for c in persistant_game_hand]
+        # players must come after deck and phand is created
+        self.players = players or test_players(game=self)
         self.shuffle_deck()
         self.new_hand()
         # tokens are used to override player's buy or kill powers,
@@ -56,6 +59,13 @@ class BaseGame(object):
         # token erasers denote when to erase each token
         self.token_erasers = {}
         self.actions = ACTION_NORMAL
+
+    @property
+    def next_iid(self):
+        cnt = len(self.deck) + len(self.phand)
+        for p in self.players:
+            cnt += len(p.deck)
+        return cnt
 
 class Game(
         BaseGame,
@@ -384,10 +394,10 @@ class Game(
         while self.game_active:
             self.player_loop()
 
-def test_players(num_players=2):
+def test_players(game, num_players=2):
     players = []
     for p in xrange(0,num_players):
-        player = Player(name='Player %s' % p)
+        player = Computer(name='Player %s' % p, game=game)
         players.append(player)
     return players
 

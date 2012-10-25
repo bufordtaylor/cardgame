@@ -1,6 +1,6 @@
 import unittest
 import random
-from game import Game
+from simulate_game import SimulateGame
 from deck import RealDeck
 from player import Computer
 
@@ -14,10 +14,8 @@ class TestGame(unittest.TestCase):
     def setUp(self):
         self.deck = RealDeck().deck
         self.players = []
-        for p in xrange(0,2):
-            player = Computer(name='Player %s' % p)
-            self.players.append(player)
-        self.game = Game(deck=self.deck, points=15, players=self.players)
+        self.game = SimulateGame(deck=self.deck, points=15, players=self.players)
+        self.players = self.game.players
         self.game.played_user_cards = []
         # calling end_turn here to reset player hand on start up
         for p in self.game.players:

@@ -47,9 +47,14 @@ class BaseGame(object):
         self.active_card = []
         self.test_deck = test_deck()
         self.deck = deck or self.test_deck
-        self.phand = [Card(iid=self.next_iid, **c) for c in persistant_game_hand]
+        for c in persistant_game_hand:
+            self.phand.append(Card(iid=self.next_iid, **c))
+
         # players must come after deck and phand is created
         self.players = players or test_players(game=self)
+        self.init_player_decks()
+
+        # all iid's must be assigned before shuffling
         self.shuffle_deck()
         self.new_hand()
         # tokens are used to override player's buy or kill powers,
@@ -66,6 +71,10 @@ class BaseGame(object):
         for p in self.players:
             cnt += len(p.deck)
         return cnt
+
+    def init_player_decks(self):
+        for p in self.players:
+            p.init_deck(self)
 
 class Game(
         BaseGame,

@@ -1,8 +1,10 @@
 import unittest
+import copy
 import random
 from simulate_game import SimulateGame
-from deck import RealDeck
+from deck import RealDeck, SimDeck
 from player import Computer
+from card import get_card_by_iid
 
 from constants import *
 from abilities_constants import *
@@ -12,9 +14,9 @@ class TestGame(unittest.TestCase):
     deck = None
 
     def setUp(self):
-        self.deck = RealDeck().deck
+        self.deck = SimDeck().deck
         self.players = []
-        self.game = SimulateGame(deck=self.deck, points=15, players=self.players)
+        self.game = SimulateGame(deck=copy.deepcopy(self.deck), points=15, players=self.players)
         self.players = self.game.players
         self.game.played_user_cards = []
         # calling end_turn here to reset player hand on start up
@@ -155,6 +157,10 @@ class TestGame(unittest.TestCase):
 
     def _get_card(self, name):
         for idx, c in enumerate(self.deck):
+            if c.name == name:
+                return c
+
+        for idx, c in enumerate(self.game.hand):
             if c.name == name:
                 return c
 
@@ -592,6 +598,135 @@ class TestGame(unittest.TestCase):
         self._fake_user_hand(PLUS_1_BUY_OR_1_KILL)
         user_card = self.game.play_user_card('c0')
         self.assertEqual(self.game.active_player.buying_power, 1)
+
+    def test_cards(self):
+        expected = ['Arha Initiate',
+            'Arha Initiate',
+            'Arha Initiate',
+            'Arha Templar',
+            'Arha Templar',
+            'Ascetic of the Lidless Eye',
+            'Ascetic of the Lidless Eye',
+            'Master Dhartha',
+            'Oziah the Peerless',
+            'Seer of the Forked Path',
+            'Seer of the Forked Path',
+            'Seer of the Forked Path',
+            'Temple Librarian',
+            'Temple Librarian',
+            'Temple Librarian',
+            'Twofold Askara',
+            'The All-Seeing Eye',
+            'Tablet of Time\'s Dawn',
+            'Cetra, Weaver of Stars',
+            'Druids of the Stone Circle',
+            'Druids of the Stone Circle',
+            'Flytrap Witch',
+            'Flytrap Witch',
+            'Landtalker',
+            'Lifebound Initiate',
+            'Lifebound Initiate',
+            'Lifebound Initiate',
+            'Runic Lycanthrope',
+            'Runic Lycanthrope',
+            'Wolf Shaman',
+            'Wolf Shaman',
+            'Wolf Shaman',
+            'Snapdragon',
+            'Snapdragon',
+            'Yggdrasil Staff',
+            'Yggdrasil Staff',
+            'Avatar Golem',
+            'Avatar Golem',
+            'Kor, the Ferrormancer',
+            'Mechana Insitute',
+            'Mechana Insitute',
+            'Mechana Insitute',
+            'Reactor Monk',
+            'Reactor Monk',
+            'Burrower Mark II',
+            'Burrower Mark II',
+            'Grand Design',
+            'Grand Design',
+            'Hedron Cannon',
+            'Hedron Link Device',
+            'Rocker Courier x-99',
+            'Rocker Courier x-99',
+            'Watchmaker Altar',
+            'Watchmaker Altar',
+            'Arbiter of the Precipice',
+            'Arbiter of the Precipice',
+            'Demon Slyyer',
+            'Demon Slyyer',
+            'Emri, One with the void',
+            'Shade of the Black Witch',
+            'Shade of the Black Witch',
+            'Shade of the Black Witch',
+            'Spike Vixen',
+            'Spike Vixen',
+            'Void Initiate',
+            'Void Initiate',
+            'Void Initiate',
+            'Murasama',
+            'Shadow Star',
+            'Shadow Star',
+            'Voidthirster',
+            'Voidthirster',
+            'Avatar of the Fallen',
+            'Corrosive Widow',
+            'Corrosive Widow',
+            'Corrosive Widow',
+            'Corrosive Widow',
+            'Earth Tyrant',
+            'Earth Tyrant',
+            'Mephit',
+            'Mephit',
+            'Mephit',
+            'Mistake of Creation',
+            'Mistake of Creation',
+            'Mistake of Creation',
+            'Mistake of Creation',
+            'Samael Trickster',
+            'Samael Trickster',
+            'Samael Trickster',
+            'Samael Trickster',
+            'Sea Tyrant',
+            'Sea Tyrant',
+            'Sea Tyrant',
+            'Tormented Soul',
+            'Tormented Soul',
+            'Tormented Soul',
+            'Wind Tryant',
+            'Wind Tryant',
+            'Wind Tryant',
+            'Xeron, Duke of Lies',
+            'mystic',
+            'heavy infantry',
+            'cultist',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'militia',
+            'militia',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'apprentice',
+            'militia',
+            'militia',
+        ]
+        for x in xrange(122):
+            self.assertEqual(get_card_by_iid(self.game, x).name, expected[x])
+
 
     def test_opponents_keep_1_construct(self):
         self.game.players[1].phand.append(self._get_card('Burrower Mark II'))

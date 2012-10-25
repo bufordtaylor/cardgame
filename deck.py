@@ -12,8 +12,7 @@ from card_constants import deck_one
 class Deck(object):
     name = None
 
-    def __init__(self):
-        self.shuffle()
+    def __init__(self): pass
 
     def shuffle(self):
         random.shuffle(self.deck)
@@ -126,7 +125,7 @@ class RealDeck(Deck):
     def __init__(self):
         self.deck = []
         for obj in deck_one:
-            for i in xrange(obj['count']+1):
+            for i in xrange(obj['count']):
                 self.deck.append(Card(iid=len(self.deck), **obj['card']))
         super(RealDeck, self).__init__()
 
@@ -134,7 +133,7 @@ class SimDeck(Deck):
     def __init__(self):
         self.deck = []
         for obj in deck_one:
-            for i in xrange(obj['count']+1):
+            for i in xrange(obj['count']):
                 self.deck.append(Card(iid=len(self.deck), **obj['card']))
         super(SimDeck, self).__init__()
 

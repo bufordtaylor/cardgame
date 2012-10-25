@@ -1,9 +1,10 @@
 import random
 import os
-from deck import PlayerStartDeck, print_card_attrs
+from deck import PlayerStartDeck, print_card_attrs, starter_cards
 from shuffle_mixin import ShufflePlayerCardMixin
 from colors import print_purple
 from constants import *
+from card import Card
 
 class BasePlayer(object): pass
 
@@ -17,11 +18,29 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
 
     def __init__(self, name, game):
         self.name = name
-        self.deck = PlayerStartDeck(game).deck
+        self.deck = []
         self.hand = []
         self.phand = []
         self.discard = []
         self.shuffle_deck()
+
+    def init_deck(self, game):
+        for i in xrange(0,2):
+            card_dict = starter_cards[i]
+            for x in xrange(0,8 if i == 0 else 2):
+                card = Card(
+                    iid=game.next_iid,
+                    name=card_dict['name'],
+                    worth=card_dict['worth'],
+                    card_type=card_dict['card_type'],
+                    buy=card_dict['buy'],
+                    kill=card_dict['kill'],
+                    instant_worth=card_dict['instant_worth'],
+                    instant_buy=card_dict['instant_buy'],
+                    instant_kill=card_dict['instant_kill'],
+                    faction=card_dict['faction'],
+                )
+                self.deck.append(card)
 
 
     def make_selection(self, must=False, this=None, that=None):

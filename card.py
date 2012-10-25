@@ -6,6 +6,43 @@ from colors import (
     print_white, print_blue, print_purple, print_ordered_cards,
 )
 
+def get_card_by_iid(game, iid):
+    if game.selected_card:
+        if game.selected_card.iid == iid:
+            return game.selected_card
+    for c in game.deck:
+        if c.iid == iid:
+            return c
+    for c in game.hand:
+        if c.iid == iid:
+            return c
+    for c in game.phand:
+        if c.iid == iid:
+            return c
+    for c in game.discard:
+        if c.iid == iid:
+            return c
+    for c in game.played_user_cards:
+        if c.iid == iid:
+            return c
+    for c in game.active_card:
+        if c.iid == iid:
+            return c
+    for p in game.players:
+        for c in p.deck:
+            if c.iid == iid:
+                return c
+        for c in p.phand:
+            if c.iid == iid:
+                return c
+        for c in p.hand:
+            if c.iid == iid:
+                return c
+        for c in p.discard:
+            if c.iid == iid:
+                return c
+    return None
+
 class Card(object):
     cid = -1 # card ID
     iid = -1 # instance ID

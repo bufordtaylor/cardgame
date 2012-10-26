@@ -226,21 +226,6 @@ class InputMixin(object):
         else:
             print_red(INVALID_SELECTION)
 
-    def handle_keep_one_construct(self, player):
-        print 'ACTIONS:', ','.join([ACTION_DICT[a] for a in self.actions])
-        #player.print_phand()
-        selection = player.make_selection(must=True)
-        try:
-            card_idx = int(selection[1:])
-            card = player.phand[card_idx]
-            return card, card_idx
-        except (ValueError, IndexError):
-            card = None
-            card_idx = None
-            os.system(['clear','cls'][os.name == 'nt'])
-            print_red(INVALID_SELECTION)
-        return self.handle_keep_one_construct(player)
-
     def handle_selection_inputs(self, actions, player):
         self.change_action(actions)
         self.display_proper_deck(player)
@@ -257,7 +242,6 @@ class InputMixin(object):
             self.handle_selection_inputs(actions, player)
 
         return card, deck, action, iid
-
 
     def display_proper_deck(self, player):
         self.print_user_status()
@@ -285,7 +269,6 @@ class InputMixin(object):
             self.print_user_phand(player)
         if ACTION_BANISH_PLAYER_PERSISTENT in self.actions:
             self.print_user_phand(player)
-
 
     def select_card_for_action(self, iid, player):
         """select card for an action"""

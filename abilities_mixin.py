@@ -126,20 +126,6 @@ class AbilitiesMixin(object):
         self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
-    def old_opponents_keep_1_construct(self, card=None):
-        for p in self.players:
-            if p == self.active_player:
-                continue
-
-            if len(p.phand) > 1:
-                self.change_action([ACTION_KEEP])
-                keep_card, keep_idx = self.handle_keep_one_construct(p)
-                for idx, card in enumerate(p.phand):
-                    if idx != keep_idx:
-                        p.discard.append(card)
-                p.phand = []
-                p.phand.append(keep_card)
-
     def opponents_keep_1_construct(self, card=None):
         for p in self.players:
             if p == self.active_player:
@@ -168,7 +154,7 @@ class AbilitiesMixin(object):
 
             if len(p.phand) > 1:
                 self.change_action([ACTION_BANISH_PLAYER_PERSISTENT])
-                destroy_card, destroy_idx = self.handle_keep_one_construct(p)
+                destroy_card, destroy_idx = self.handle_destroy_one_construct(p)
                 card = p.get_card(destroy_idx, persistent=True, move=True)
                 p.discard.append(card)
 

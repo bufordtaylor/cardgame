@@ -127,7 +127,6 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
     def raw_card_selection(self):
         return raw_input('select a card ')
 
-
     def select_card_action(self, action_list=None):
         input_string = ['deselect']
         for k,v in ACTION_DICT_DISPLAY.iteritems():
@@ -139,8 +138,6 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             if selection == v:
                 return k
         return ACTION_DESELECT
-
-
 
 class Computer(Player, ShufflePlayerCardMixin):
 

@@ -69,10 +69,12 @@ class PrintMixin(object):
             self.print_card_hand(self.active_player.discard, player=True)
             print
 
-    def print_user_phand(self):
-        if len(self.active_player.phand) > 0:
-            print_green('---%s PERSISTENTS IN PLAY' % self.active_player.name)
-            self.print_card_hand(self.active_player.phand, player=True)
+    def print_user_phand(self, player=None):
+        if not player:
+            player = self.active_player
+        if len(player.phand) > 0:
+            print_green('---%s PERSISTENTS IN PLAY' % player.name)
+            self.print_card_hand(player.phand, player=True)
             print
 
     def show_played_cards(self, selection):

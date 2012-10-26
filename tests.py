@@ -164,6 +164,20 @@ class TestGame(unittest.TestCase):
             if c.name == name:
                 return c
 
+    def _move_card(self, name):
+        card = None
+        for idx, c in enumerate(self.game.deck):
+            if c.name == name:
+                card = c
+                del self.game.deck[idx]
+                return c
+
+        for idx, c in enumerate(self.game.hand):
+            if c.name == name:
+                card = c
+                del self.game.hand[idx]
+        return card
+
     def _fake_hand(self, card_name):
         # force card at 0 position, fill the rest of the hand so no collisions
         fake_cards = [None]
@@ -729,9 +743,9 @@ class TestGame(unittest.TestCase):
 
 
     def test_opponents_keep_1_construct(self):
-        self.game.players[1].phand.append(self._get_card('Burrower Mark II'))
-        self.game.players[1].phand.append(self._get_card('Grand Design'))
-        self.game.players[1].phand.append(self._get_card('Snapdragon'))
+        self.game.players[1].phand.append(self._move_card('Burrower Mark II'))
+        self.game.players[1].phand.append(self._move_card('Grand Design'))
+        self.game.players[1].phand.append(self._move_card('Snapdragon'))
         self._fake_hand('Sea Tyrant')
         self.game.active_player.killing_power = 100
         self.game.check_cards_eligibility()

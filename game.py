@@ -72,6 +72,43 @@ class BaseGame(object):
             cnt += len(p.deck)
         return cnt
 
+    def get_card_by_iid(self, iid):
+        if self.selected_card:
+            if self.selected_card.iid == iid:
+                return self.selected_card
+        for c in self.deck:
+            if c.iid == iid:
+                return c
+        for c in self.hand:
+            if c.iid == iid:
+                return c
+        for c in self.phand:
+            if c.iid == iid:
+                return c
+        for c in self.discard:
+            if c.iid == iid:
+                return c
+        for c in self.played_user_cards:
+            if c.iid == iid:
+                return c
+        for c in self.active_card:
+            if c.iid == iid:
+                return c
+        for p in self.players:
+            for c in p.deck:
+                if c.iid == iid:
+                    return c
+            for c in p.phand:
+                if c.iid == iid:
+                    return c
+            for c in p.hand:
+                if c.iid == iid:
+                    return c
+            for c in p.discard:
+                if c.iid == iid:
+                    return c
+        return None
+
     def init_player_decks(self):
         for p in self.players:
             p.init_deck(self)
@@ -273,6 +310,14 @@ class Game(
             c.check_actions(self)
         for c in self.active_player.discard:
             c.check_actions(self)
+        if ACTION_KEEP in self.actions:
+            for p in self.players:
+                for c in p.phand:
+                    c.check_actions(self)
+                for c in p.hand:
+                    c.check_actions(self)
+                for c in p.discard:
+                    c.check_actions(self)
 
     def play_user_card_persistent(self, selection, action=ACTION_USE):
         card, card_idx = self.sanitize(selection, persistent=True, player_card=True)

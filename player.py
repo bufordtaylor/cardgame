@@ -109,7 +109,6 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
             self.game.play_user_card_effects(card)
 
     def end_turn(self):
-
         self.active = False
         self.new_hand()
         self.buying_power = 0
@@ -119,11 +118,43 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         self.game.used_tokens = {}
         os.system(['clear','cls'][os.name == 'nt'])
 
+    def _make_selection(self, display_list):
+        selection = raw_input(' | '.join(display_list))
+        if selection not in display_list:
+            return self._make_selection(display_list)
+        return selection
+
+    def raw_card_selection(self):
+        return raw_input('select a card ')
+
+
+    def select_card_action(self, action_list=None):
+        input_string = ['deselect']
+        for k,v in ACTION_DICT_DISPLAY.iteritems():
+            if k in action_list:
+                input_string.append(v)
+
+        selection = self._make_selection(input_string)
+        for k,v in ACTION_DICT_DISPLAY.iteritems():
+            if selection == v:
+                return k
+        return ACTION_DESELECT
+
+
+
 class Computer(Player, ShufflePlayerCardMixin):
 
     @property
     def is_computer(self):
         return True
+
+    def _make_selection(self, display_list):
+        return display_list[len(display_list) - 1]
+
+    def raw_card_selection(self):
+        if ACTION_KEEP in self.game.actions:
+            for card in self.phand:
+                return card.iid
 
     def make_selection(self, must=False, this=None, that=None):
         selection = 'a'

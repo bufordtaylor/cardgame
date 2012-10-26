@@ -6,42 +6,46 @@ from colors import (
     print_white, print_blue, print_purple, print_ordered_cards,
 )
 
-def get_card_by_iid(game, iid):
+def get_card_and_deck(game, iid):
     if game.selected_card:
         if game.selected_card.iid == iid:
-            return game.selected_card
+            return game.selected_card, DECK_SELECTED_CARD
     for c in game.deck:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_DECK
     for c in game.hand:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_HAND
     for c in game.phand:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_PHAND
     for c in game.discard:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_DISCARD
     for c in game.played_user_cards:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_PLAYED_USER_CARDS
     for c in game.active_card:
         if c.iid == iid:
-            return c
+            return c, DECK_GAME_ACTIVE_CARD
     for p in game.players:
         for c in p.deck:
             if c.iid == iid:
-                return c
+                return c, DECK_PLAYER_DECK
         for c in p.phand:
             if c.iid == iid:
-                return c
+                return c, DECK_PLAYER_PHAND
         for c in p.hand:
             if c.iid == iid:
-                return c
+                return c, DECK_PLAYER_HAND
         for c in p.discard:
             if c.iid == iid:
-                return c
-    return None
+                return c, DECK_PLAYER_DISCARD
+    return None, None
+
+def get_card_by_iid(game, iid):
+    card, deck = get_card_and_deck(game, iid)
+    return card
 
 class Card(object):
     cid = -1 # card ID
@@ -76,19 +80,7 @@ class Card(object):
             color = bcolors.GREEN
         elif self.mark_for_kill:
             color = bcolors.RED
-        if player_card:
-            instruction = (color, '%s:%s' % ('[c]ard', idx))
-        else:
-            instruction = (color, ' ')
-        if self.mark_for_action or self.mark_for_kill:
-            if player_card:
-                instruction = (color, '%s:%s' % ('[c]ard', idx))
-            elif game_phand:
-                instruction = (color, '%s:%s' % ('[p]ers', idx))
-            else:
-                instruction = (color, '%s:%s' % (
-                    self.kill_buy_acquire(game), idx)
-                )
+        instruction = (color, self.iid)
 
         attr_list = [
             instruction,
@@ -199,6 +191,13 @@ class Card(object):
     def _determine_actions(self, game_action, game):
         kill, buy = self.apply_card_tokens(game)
 
+        if game_action == ACTION_KEEP:
+            for p in game.players:
+                if id(self) in [id(c) for c in p.phand]:
+                    self.actions.append(ACTION_KEEP)
+                if self.iid == 44:
+                    print 'actions!', self.actions, p
+            return
 
         if game_action == ACTION_DISCARD_FROM_PLAYER_HAND:
             if self in game.active_player.hand:
@@ -280,6 +279,8 @@ class Card(object):
         for action in game.actions:
             self._determine_actions(action, game)
 
+    def list_eligible_actions(self):
+        print self.actions
 
     # lots of helpers below this
 

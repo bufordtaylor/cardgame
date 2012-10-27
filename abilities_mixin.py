@@ -15,13 +15,18 @@ class AbilitiesMixin(object):
 
     def draw_2_then_banish_1_hand(self, card=None):
         self.draw_2()
-        self.change_action([ACTION_BANISH])
-        self.must_banish_card(num=1, where=WHERE_PLAYER_HAND)
+        card, deck, action, iid = self.handle_selection_inputs(
+            [ACTION_BANISH_PLAYER_HAND], self.active_player)
+        self.remove_card(card, self.active_player.hand)
+        self.discard.append(card)
 
     def draw_1_banish_center(self, card=None):
         self.draw_1()
-        self.change_action([ACTION_BANISH])
-        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
+        card, deck, action, iid = self.handle_selection_inputs(
+            [ACTION_BANISH_CENTER], self.active_player)
+        if card:
+            self.remove_card(card, self.hand)
+            self.discard.append(card)
 
     def draw_1_if_control_gt_2_constructs(self, card=None):
         persistents = 0
@@ -126,19 +131,6 @@ class AbilitiesMixin(object):
         self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
 
-    def opponents_keep_1_construct(self, card=None):
-        for p in self.players:
-            if p == self.active_player:
-                continue
-
-            if len(p.phand) > 1:
-                card, deck, action, iid = self.handle_selection_inputs([ACTION_KEEP], p)
-                for pcard in p.phand:
-                    if card.iid != iid:
-                        p.discard.append(pcard)
-                p.phand = []
-                p.phand.append(card)
-
     def can_banish_1_center(self, card=None):
         self.change_action([ACTION_BANISH])
         self.can_banish_card(num=1, where=WHERE_GAME_HAND)
@@ -218,4 +210,51 @@ class AbilitiesMixin(object):
 
     def all_contructs_are_mechana(self, card=None):
         self.set_token(ALL_CONTRUCTS_ARE_MECHANA, 1, END_OF_TURN)
+
+    def opponents_keep_1_construct(self, card=None):
+        for p in self.players:
+            if p == self.active_player:
+                continue
+
+            if len(p.phand) > 1:
+                results = self.handle_selection_inputs([ACTION_KEEP], p)
+                card, deck, action, iid = results
+                for pcard in p.phand:
+                    if card.iid != iid:
+                        p.discard.append(pcard)
+                p.phand = []
+                p.phand.append(card)
+
+
+########### regular abilities
+    def normal_action(self):
+        card, deck, action, iid = self.handle_selection_inputs(
+            ACTION_NORMAL, self.active_player)
+
+        # card is now not in any deck. it is active
+        self.active_card.append(card)
+
+
+        if action == ACTION_USE:
+            getattr(self,ABILITY_MAP.get(card.abilities)
+                )(card=card, action=action)
+
+        # if playing card, remove card from player hand
+        if action == ACTION_PLAY:
+            self.remove_card(card, self.active_player.hand)
+
+            # play user card effects
+            self.play_user_card_effects(card)
+
+            # depending on what type of card it is, determine where it
+            # should go, persistent hand or played user cards
+            if card.card_type == CARD_TYPE_PERSISTENT:
+                self.active_player.phand.append(card)
+                #TODO we are calling this in play_user_card_effects
+                self.check_cards_eligibility()
+            else:
+                self.played_user_cards.append(card)
+        self.active_card = []
+        return card
+
 

@@ -195,8 +195,6 @@ class Card(object):
             for p in game.players:
                 if id(self) in [id(c) for c in p.phand]:
                     self.actions.append(ACTION_KEEP)
-                if self.iid == 44:
-                    print 'actions!', self.actions, p
             return
 
         if game_action == ACTION_DISCARD_FROM_PLAYER_HAND:
@@ -211,6 +209,14 @@ class Card(object):
         if game_action == ACTION_BANISH:
             if self.banishable:
                 self.actions.append(ACTION_BANISH)
+
+        if game_action == ACTION_BANISH_CENTER:
+            if self.iid in [c.iid for c in game.hand] and self.banishable:
+                self.actions.append(ACTION_BANISH_CENTER)
+
+        if game_action == ACTION_BANISH_PLAYER_HAND:
+            if self.iid in [c.iid for c in game.active_player.hand]:
+                self.actions.append(ACTION_BANISH_PLAYER_HAND)
 
         if game_action == ACTION_DEFEAT:
             if self.card_type == CARD_TYPE_MONSTER:
@@ -227,7 +233,7 @@ class Card(object):
 
         if game_action == ACTION_PLAY:
             # if it's in the player's hand, it's always eligible
-            if id(self) in [id(c) for c in game.active_player.hand]:
+            if self.iid in [c.iid for c in game.active_player.hand]:
                 self.actions.append(ACTION_PLAY)
 
             # tokens are set for persistent player cards

@@ -288,6 +288,7 @@ class Game(
                 self.use_token(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
 
 
+    # XXX not unit tested
     def play_all_user_cards(self, selection):
         if len(self.active_player.hand) == 0:
             print_red('No cards left to play')
@@ -328,25 +329,6 @@ class Game(
             getattr(
                 self,ABILITY_MAP.get(card.abilities)
             )(card=card, action=action)
-        return card
-
-    def play_user_card(self, selection, persistent=False):
-        card, card_idx = self.sanitize(selection, persistent, player_card=True)
-        if not card:
-            return self.handle_inputs()
-        os.system(['clear','cls'][os.name == 'nt'])
-
-        # get_card removes card from player hand list
-        card = self.active_player.get_card(card_idx, persistent)
-        self.active_card.append(card)
-        self.play_user_card_effects(card)
-        if card.card_type == CARD_TYPE_PERSISTENT:
-            self.active_player.phand.append(card)
-            #TODO we are calling this in play_user_card_effects
-            self.check_cards_eligibility()
-        else:
-            self.played_user_cards.append(card)
-        self.active_card = []
         return card
 
     def play_user_card_effects(self, card):

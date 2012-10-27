@@ -238,10 +238,11 @@ class InputMixin(object):
         card, deck, action, iid = self.select_card_for_action(
             raw_card_selection, player
         )
+        print card, deck, action, iid
         if not card or action == ACTION_DESELECT:
             self.handle_selection_inputs(actions, player)
 
-        return card, deck, action, iid
+        return (card, deck, action, iid)
 
     def display_proper_deck(self, player):
         self.print_user_status()
@@ -251,6 +252,8 @@ class InputMixin(object):
             self.print_user_hand()
             self.print_user_phand(player)
         if ACTION_BANISH in self.actions:
+            self.print_hand()
+        if ACTION_BANISH_CENTER in self.actions:
             self.print_hand()
         if ACTION_DISCARD_FROM_PLAYER_HAND in self.actions:
             self.print_user_hand()

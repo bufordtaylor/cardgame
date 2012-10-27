@@ -104,25 +104,8 @@ class TestGame(unittest.TestCase):
         self.assertEquals(self.game.turn, 1)
         self.assertEquals(self.game.active_player.name, 'Player 1')
 
-    def test_play_user_card(self):
-        """
-        card should be in game.played_user_cards list,
-        and removed from player hand
-        """
-        self.assertEquals(len(self.game.played_user_cards), 0)
-        #
-        # simulate playing card at zero position
-        card = self.game.play_user_card('c0')
-        obj_id = id(card)
 
-        # check all the points that should've been added
-        self.assertEqual(self.game.active_player.killing_power, card.instant_kill)
-        self.assertEqual(self.game.active_player.buying_power, card.instant_buy)
-        self.assertEqual(self.game.active_player.points, card.instant_worth)
 
-        # check card is not in hand anymore, and it is in played user cards
-        self.assertFalse(obj_id in [id(c) for c in self.game.active_player.hand])
-        self.assertTrue(obj_id in [id(c) for c in self.game.played_user_cards])
 
     def test_defeat_or_acquire_persistents(self):
         """
@@ -177,6 +160,16 @@ class TestGame(unittest.TestCase):
                 card = c
                 del self.game.hand[idx]
         return card
+
+    def _move_card_for_user(self, ability):
+        card = None
+        for idx, c in enumerate(self.game.deck):
+            if c.abilities == ability:
+                card = c
+                del self.game.deck[idx]
+                return c
+        return card
+
 
     def _fake_hand(self, card_name):
         # force card at 0 position, fill the rest of the hand so no collisions
@@ -252,75 +245,77 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.active_player.killing_power, killing_power - card.kill)
 
     def test_instant_ability_draw_card(self):
-        # increase initial count so that we have a total of 11 cards
-        # this is so that when we have played our 3 draw cards, we have 8
-        # cards in hand
         self.game.active_player.deck.append(self.game.deck.pop())
-        self._fake_user_hand(DRAW_1)
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_1)
         self.assertEqual(len(self.game.active_player.hand), 5)
-        card = self.game.play_user_card('c0')
+        card = self.game.normal_action()
         self.assertEqual(len(self.game.active_player.hand), 5)
 
-        self._fake_user_hand(DRAW_2)
+    def test_instant_ability_draw_2_card(self):
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_2)
         self.assertEqual(len(self.game.active_player.hand), 5)
-        card = self.game.play_user_card('c0')
+        card = self.game.normal_action()
         self.assertEqual(len(self.game.active_player.hand), 6)
 
-        self._fake_user_hand(DRAW_3)
-        self.assertEqual(len(self.game.active_player.hand), 6)
-        card = self.game.play_user_card('c0')
-        self.assertEqual(len(self.game.active_player.hand), 8)
+    def test_instant_ability_draw_3_card(self):
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_3)
+        self.assertEqual(len(self.game.active_player.hand), 5)
+        card = self.game.normal_action()
+        self.assertEqual(len(self.game.active_player.hand), 7)
 
-    def test_instant_ability_banish(self):
-        self._fake_user_hand(DRAW_2_THEN_BANISH_1_HAND)
-        card = self.game.play_user_card('c0')
-        selected_card = self.game.selected_card
-        self.assertTrue(id(selected_card) in [id(c) for c in self.game.discard])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
+    def test_draw_2_then_banish_1_hand(self):
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_2_THEN_BANISH_1_HAND)
+        banished_card = self.game.active_player.hand[1]
+        card = self.game.normal_action()
+        self.assertTrue(banished_card.iid in [c.iid for c in self.game.discard])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.hand])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.discard])
 
-        self._fake_user_hand(DRAW_1_BANISH_CENTER)
-        card = self.game.play_user_card('c0')
-        selected_card = self.game.selected_card
-        self.assertTrue(id(selected_card) in [id(c) for c in self.game.discard])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
+    def test_draw_1_banish_center(self):
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_1_BANISH_CENTER)
+        banished_card = self.game.hand[0]
+        card = self.game.normal_action()
+        self.assertTrue(banished_card.iid in [c.iid for c in self.game.discard])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.hand])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.discard])
 
+    def test_unbanishable(self):
          #cannot banish avatar
-        self._fake_hand('Avatar of the Fallen')
-        self._fake_user_hand(DRAW_1_BANISH_CENTER)
-        card = self.game.play_user_card('c0')
-        selected_card = self.game.selected_card
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.discard])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
-        #XXX need to test banish_construct
+        self.game.hand[0] = self._move_card('Avatar of the Fallen')
+        avatar = self.game.hand[0]
+        banished_card = self.game.hand[1]
+        self.game.active_player.hand[0] = self._move_card_for_user(DRAW_1_BANISH_CENTER)
+        card = self.game.normal_action()
+        self.assertTrue(avatar.iid in [c.iid for c in self.game.hand])
+        self.assertTrue(avatar.iid not in [c.iid for c in self.game.discard])
+        self.assertTrue(banished_card.iid in [c.iid for c in self.game.discard])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.hand])
+        self.assertTrue(banished_card.iid not in [c.iid for c in self.game.active_player.discard])
 
     def test_kill_ability_banish(self):
-        self._fake_user_hand(CAN_BANISH_1_HAND_OR_DISCARD_AND_CENTER)
-        card = self._get_card('Voidthirster')
+        self.game.active_player.hand[0] = self._move_card_for_user(CAN_BANISH_1_HAND_OR_DISCARD_AND_CENTER)
+        card = self._move_card('Voidthirster')
         self.game.active_player.discard.append(card)
-        card = self.game.play_user_card('c0')
+        card = self.game.normal_action()
         selected_card = self.game.selected_card
         self.assertTrue(len(self.game.active_player.hand), 4)
         self.assertTrue(len(self.game.active_player.discard), 0)
         self.assertTrue(len(self.game.discard), 2)
 
     def test_instant_ability_can_banish_1_hand_or_discard(self):
-        self._fake_user_hand(CAN_BANISH_1_HAND_OR_DISCARD)
-        card = self._get_card('Voidthirster')
+        self.game.active_player.hand[0] = self._move_card_for_user(CAN_BANISH_1_HAND_OR_DISCARD)
+        card = self._move_card('Voidthirster')
         self.game.active_player.discard.append(card)
         self.assertTrue(len(self.game.active_player.discard), 1)
-        card = self.game.play_user_card('c0')
-        selected_card = self.game.selected_card
+        card = self.game.normal_action()
         self.assertTrue(len(self.game.active_player.hand), 4)
         self.assertTrue(len(self.game.active_player.discard), 0)
 
 
 
     def test_instant_ability_discard(self):
-        self._fake_user_hand(IF_DISCARD_DRAW_TWO)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(IF_DISCARD_DRAW_TWO)
+        card = self.game.normal_action()
         selected_card = self.game.selected_card
         self.assertTrue(id(selected_card) in [id(c) for c in self.game.active_player.discard])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
@@ -328,8 +323,8 @@ class TestGame(unittest.TestCase):
 
     def test_instant_ability_copy_no_card(self):
         # no card to emulate, so it just plays it
-        self._fake_user_hand(COPY_EFFECT)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(COPY_EFFECT)
+        card = self.game.normal_action()
         selected_card = self.game.selected_card
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.discard])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
@@ -346,14 +341,14 @@ class TestGame(unittest.TestCase):
 
     def test_instant_ability_copy(self):
         # set up copy with another card
-        self._fake_user_hand(IF_DISCARD_DRAW_TWO)
-        played_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(IF_DISCARD_DRAW_TWO)
+        card = self.game.normal_action()
         selected_card = self.game.selected_card
         self.assertTrue(len(self.game.active_player.hand), 6)
 
         # emulate other card
-        self._fake_user_hand(COPY_EFFECT)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(COPY_EFFECT)
+        card = self.game.normal_action()
         selected_card = self.game.selected_card
         self.assertTrue(id(selected_card) in [id(c) for c in self.game.active_player.discard])
         self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
@@ -423,29 +418,30 @@ class TestGame(unittest.TestCase):
             self.game.remove_token('minus_buy')
 
     def test_acquire_hero_3_or_less_to_top_of_deck(self):
-        perscard = self._get_card('Voidthirster')
-        monstercard = self._get_card('Avatar of the Fallen')
-        herocard = self._get_card('Wolf Shaman')
-        expensiveherocard = self._get_card('Landtalker')
+        perscard = self._move_card('Voidthirster')
+        monstercard = self._move_card('Avatar of the Fallen')
+        herocard = self._move_card('Wolf Shaman')
+        expensiveherocard = self._move_card('Landtalker')
         self.game.hand[0] = perscard
         self.game.hand[1] = monstercard
         self.game.hand[2] = expensiveherocard
         self.game.hand[3] = herocard
-        self._fake_user_hand(ACQUIRE_HERO_3_OR_LESS_TO_TOP_OF_DECK)
-        usercard = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(ACQUIRE_HERO_3_OR_LESS_TO_TOP_OF_DECK)
+
+        user_card = self.game.normal_action()
         self.assertTrue(herocard in self.game.active_player.deck)
 
     def test_ability_point_per_controlled_construct(self):
-        self.game.active_player.phand.append(self._get_card('Burrower Mark II'))
-        self.game.active_player.phand.append(self._get_card('Grand Design'))
-        self.game.active_player.phand.append(self._get_card('Snapdragon'))
-        self._fake_user_hand(PLUS_1_POINT_PER_CONTROLLED_CONSTRUCT)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.phand.append(self._move_card('Burrower Mark II'))
+        self.game.active_player.phand.append(self._move_card('Grand Design'))
+        self.game.active_player.phand.append(self._move_card('Snapdragon'))
+        self.game.active_player.hand[0] = self._move_card_for_user(PLUS_1_POINT_PER_CONTROLLED_CONSTRUCT)
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.points, 2)
 
     def test_ability_per_turn_plus_1_kill_can_spend_4_to_buy_3_points(self):
-        self._fake_user_hand(PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_1_KILL_CAN_SPEND_4_TO_BUY_3_POINTS)
+        card = self.game.normal_action()
         self.assertEqual(len(self.game.active_player.phand), 1)
         self.assertEqual(card.can_use, False)
         # check basic case
@@ -470,20 +466,20 @@ class TestGame(unittest.TestCase):
         self.assertEqual(card.can_use, False)
 
     def test_instant_ability_if_lifebound_hero_plus_2_kill(self):
-        self.game.played_user_cards.append(self._get_card('Wolf Shaman'))
-        self._fake_user_hand(IF_LIFEBOUND_HERO_PLUS_2_KILL)
-        card = self.game.play_user_card('c0')
+        self.game.played_user_cards.append(self._move_card('Wolf Shaman'))
+        self.game.active_player.hand[0] = self._move_card_for_user(IF_LIFEBOUND_HERO_PLUS_2_KILL)
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.killing_power, 2)
 
 
     def test_ability_per_turn_draw_1(self):
-        self._fake_user_hand(PER_TURN_DRAW_1)
-        card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_DRAW_1)
+        card = self.game.normal_action()
         self.assertEqual(card.can_use, True)
         self.assertEqual(len(self.game.active_player.phand), 1)
         self.assertEqual(len(self.game.active_player.hand), 4)
         self.assertEqual(len(self.game.token), 1)
-        card = self.game.play_user_card_persistent('t0')
+        card = self.game.normal_action()
         self.assertEqual(len(self.game.token), 0)
         self.assertEqual(card.can_use, False)
         self.assertEqual(len(self.game.active_player.phand), 1)
@@ -495,11 +491,13 @@ class TestGame(unittest.TestCase):
             'Ascetic of the Lidless Eye': [False, False, False],
         }
         for k, v in test_cards.iteritems():
-            card = self._fake_hand(k)
+            card = self._move_card(k)
+            self.game.hand[0] = card
             self.assertEqual(card.can_buy, v[0])
             self.game.active_player.buying_power = 2
-            self._fake_user_hand(NEXT_CONSTRUCT_1_LESS_BUY)
-            user_card = self.game.play_user_card('c0')
+            self.game.active_player.hand[0] = self._move_card_for_user(NEXT_CONSTRUCT_1_LESS_BUY)
+            user_card = self.game.normal_action()
+            self.game.check_cards_eligibility()
             self.assertEqual(card.can_buy, v[1])
             if card.can_buy:
                 self.game.acquire_card(card, persistent=False)
@@ -511,16 +509,17 @@ class TestGame(unittest.TestCase):
     def test_per_turn_plus_2_buy_for_mechana_construct_only(self):
         self.game.active_player.buying_power = 4 # hedron has 7
         # check can buy without enough buying power
-        self.game.hand[0] = self._get_card('Hedron Link Device')
+        self.game.hand[0] = self._move_card('Hedron Link Device')
         self.game.check_cards_eligibility()
         self.assertFalse(self.game.hand[0].can_buy)
-        self._fake_user_hand(PER_TURN_PLUS_2_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_2_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
+        card = self.game.normal_action()
         self.game.check_cards_eligibility()
         # added two buying power, but not enough
         self.assertFalse(self.game.hand[0].can_buy)
-        self._fake_user_hand(PER_TURN_PLUS_1_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_1_BUY_FOR_MECHANA_CONSTRUCT_ONLY)
+        self.assertEquals(self.game.active_player.hand[0].iid, 52)
+        card = self.game.normal_action()
         self.game.check_cards_eligibility()
         # added one buying power, and now it is enough
         self.assertTrue(self.game.hand[0].can_buy)
@@ -535,38 +534,50 @@ class TestGame(unittest.TestCase):
 
     def test_per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self):
         self._fake_hand('Avatar of the Fallen')
-        self._fake_user_hand(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
+        card = self.game.normal_action()
         self.game.defeat_card(self.game.hand[0], persistent=False)
         self.assertEqual(self.game.active_player.points, 5)
 
     def test_per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self):
-        self._fake_user_hand(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.points, 0)
-        self.game.active_player.hand[0] = self._get_card('Wolf Shaman')
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card('Wolf Shaman')
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.points, 1)
-        self.game.active_player.hand[0] = self._get_card('Wolf Shaman')
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card('Wolf Shaman')
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.points, 1)
 
     def test_per_turn_when_play_mechana_construct_draw_1_including_this_one(self):
-        self._fake_user_hand(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_WHEN_PLAY_MECHANA_CONSTRUCT_DRAW_1_INCLUDING_THIS_ONE)
+
         self.assertEqual(len(self.game.active_player.hand), 5)
-        user_card = self.game.play_user_card('c0')
+        card = self.game.normal_action()
+        player = self.game.active_player
         self.assertEqual(len(self.game.active_player.hand), 5)
+        self.assertEqual(len(self.game.active_player.phand), 1)
+        self.game.active_player.end_turn()
+        self.game.next_player_turn()
+        self.game.active_player.end_turn()
+        self.game.next_player_turn()
+        self.assertEqual(player, self.game.active_player)
+        self.assertEqual(len(self.game.active_player.hand), 5)
+        card = self.game.normal_action()
+        self.assertEqual(len(self.game.active_player.hand), 4)
         self.assertEqual(len(self.game.active_player.phand), 1)
 
     def test_per_turn_plus_1_kill_per_controlled_mechana_contruct(self):
-        self._fake_user_hand(PER_TURN_PLUS_1_KILL_PER_CONTROLLED_MECHANA_CONTRUCT)
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_PLUS_1_KILL_PER_CONTROLLED_MECHANA_CONTRUCT)
         self.game.active_player.phand.append(self._get_card('Hedron Link Device'))
-        user_card = self.game.play_user_card('c0')
+        card = self.game.normal_action()
         self.assertEqual(self.game.active_player.killing_power, 2)
 
     def test_per_turn_when_acquire_mechana_construct_put_in_play(self):
-        self._fake_user_hand(PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PER_TURN_WHEN_ACQUIRE_MECHANA_CONSTRUCT_PUT_IN_PLAY)
+
+        card = self.game.normal_action()
         self.game.active_player.buying_power = 1000
         self.game.hand[0] = self._get_card('Grand Design')
         self.game.check_cards_eligibility()
@@ -575,15 +586,15 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.active_player.phand), 2)
 
     def test_all_contructs_are_mechana(self):
-        self._fake_user_hand(ALL_CONTRUCTS_ARE_MECHANA)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(ALL_CONTRUCTS_ARE_MECHANA)
+        user_card = self.game.normal_action()
         self.game.hand[0] = self._get_card('Yggdrasil Staff')
         self.assertTrue(self.game.hand[0].in_faction(self.game, LIFEBOUND))
         self.assertTrue(self.game.hand[0].in_faction(self.game, MECHANA))
 
     def test_banish_this_extra_turn(self):
-        self._fake_user_hand(BANISH_THIS_EXTRA_TURN)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(BANISH_THIS_EXTRA_TURN)
+        user_card = self.game.normal_action()
         self.assertEqual(user_card.can_use, True)
         self.assertEqual(len(self.game.active_player.phand), 1)
         self.assertEqual(len(self.game.token), 1)
@@ -609,8 +620,8 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.active_player.discard), 1)
 
     def test_plus_1_buy_or_1_kill(self):
-        self._fake_user_hand(PLUS_1_BUY_OR_1_KILL)
-        user_card = self.game.play_user_card('c0')
+        self.game.active_player.hand[0] = self._move_card_for_user(PLUS_1_BUY_OR_1_KILL)
+        user_card = self.game.normal_action()
         self.assertEqual(self.game.active_player.buying_power, 1)
 
     def test_cards(self):
@@ -741,6 +752,37 @@ class TestGame(unittest.TestCase):
         for x in xrange(122):
             self.assertEqual(get_card_by_iid(self.game, x).name, expected[x])
 
+    def test_normal_action(self):
+        self.assertEquals(len(self.game.played_user_cards), 0)
+        card = self.game.normal_action()
+        # check all the points that should've been added
+        self.assertEqual(self.game.active_player.killing_power, card.instant_kill)
+        self.assertEqual(self.game.active_player.buying_power, card.instant_buy)
+        self.assertEqual(self.game.active_player.points, card.instant_worth)
+
+        # check card is not in hand anymore, and it is in played user cards
+        self.assertFalse(card.iid in [c.iid for c in self.game.active_player.hand])
+        self.assertTrue(card.iid in [c.iid for c in self.game.played_user_cards])
+
+    def old_test_play_user_card(self):
+        """
+        card should be in game.played_user_cards list,
+        and removed from player hand
+        """
+        self.assertEquals(len(self.game.played_user_cards), 0)
+        #
+        # simulate playing card at zero position
+        card = self.game.play_user_card('c0')
+        obj_id = id(card)
+
+        # check all the points that should've been added
+        self.assertEqual(self.game.active_player.killing_power, card.instant_kill)
+        self.assertEqual(self.game.active_player.buying_power, card.instant_buy)
+        self.assertEqual(self.game.active_player.points, card.instant_worth)
+
+        # check card is not in hand anymore, and it is in played user cards
+        self.assertFalse(obj_id in [id(c) for c in self.game.active_player.hand])
+        self.assertTrue(obj_id in [id(c) for c in self.game.played_user_cards])
 
     def test_opponents_keep_1_construct(self):
         self.game.players[1].phand.append(self._move_card('Burrower Mark II'))

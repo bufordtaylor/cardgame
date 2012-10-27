@@ -13,6 +13,11 @@ class ShuffleMixin(object):
 
         self.hand.append(self.deck.pop())
 
+    def remove_card(self, card, deck):
+        for idx, c in enumerate(deck):
+            if card.iid == c.iid:
+                del deck[idx]
+
     def get_card(self, card_idx, persistent=False, move=False):
         if persistent:
             card = self.phand[card_idx]

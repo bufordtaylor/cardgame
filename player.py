@@ -140,18 +140,39 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
         return ACTION_DESELECT
 
 class Computer(Player, ShufflePlayerCardMixin):
+    """computer is a dumb machine that always chooses the first available
+    action without thinking ahead"""
 
     @property
     def is_computer(self):
         return True
 
     def _make_selection(self, display_list):
+        print display_list
         return display_list[len(display_list) - 1]
 
     def raw_card_selection(self):
         if ACTION_KEEP in self.game.actions:
             for card in self.phand:
                 return card.iid
+
+        # play all cards before deciding to action_kill or action_buy
+        if ACTION_PLAY in self.game.actions:
+
+            # if we can use a persistent, use it first
+            for idx, c in enumerate(self.phand):
+                if c.can_use:
+                    return c.iid
+
+            return self.hand[0].iid
+
+        if ACTION_BANISH_PLAYER_HAND in self.game.actions:
+            return self.hand[0].iid
+
+        if ACTION_BANISH_CENTER in self.game.actions:
+            for idx, c in enumerate(self.game.hand):
+                if c.banishable:
+                    return c.iid
 
     def make_selection(self, must=False, this=None, that=None):
         selection = 'a'

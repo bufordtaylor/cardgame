@@ -10,7 +10,7 @@ class SimulateGame(Game):
     def player_loop(self):
         print_red('remaining points %s' % self.points)
         if self.active_player.active:
-            self.handle_inputs()
+            self.normal_action()
         else:
             self.next_player_turn()
             if self.points <= 0:

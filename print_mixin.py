@@ -82,7 +82,7 @@ class PrintMixin(object):
         self.print_user_played_cards()
         raw_input('Press anything to continue')
         os.system(['clear','cls'][os.name == 'nt'])
-        return self.handle_inputs()
+        return self.normal_action()
 
     def print_user_status(self):
         """

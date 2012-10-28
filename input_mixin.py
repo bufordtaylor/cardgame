@@ -54,12 +54,21 @@ class InputMixin(object):
 
     def handle_selection_inputs(self, actions, player):
         self.change_action(actions)
+        print 'here'
+        if self.debug:
+            print 0
+            if not self.player_can_do_actions():
+                print 1
+                self.game_active = False
+                return (None, None, None, None)
+
         self.display_proper_deck(player)
         try:
             raw_input = player.raw_card_selection()
             # in this case, there is no eligible card to select
             # therefore nothing can be done
             if raw_input is None:
+                self.log_action(None, None, None, None)
                 return (None, None, None, None)
             else:
                 raw_card_selection = int(raw_input)
@@ -70,7 +79,6 @@ class InputMixin(object):
         card, deck, action, iid = self.select_card_for_action(
             raw_card_selection, player
         )
-        print card, deck, action, iid
         if not card or action == ACTION_DESELECT:
             self.handle_selection_inputs(actions, player)
 

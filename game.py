@@ -33,8 +33,10 @@ class BaseGame(object):
     debug_counter = 0
     active_card = None
     extra_turn = False
+    round = 0
 
     def __init__(self, points, players=None, deck=None):
+        self.log = {}
         self.players = []
         self.points = points
         self.discard = []
@@ -87,6 +89,22 @@ class BaseGame(object):
         for p in self.players:
             cnt += len(p.deck)
         return cnt
+
+    @property
+    def hand_iids(self):
+        return [c.iid for c in self.hand]
+
+    @property
+    def phand_iids(self):
+        return [c.iid for c in self.phand]
+
+    @property
+    def discard_iids(self):
+        return [c.iid for c in self.discard]
+
+    @property
+    def played_user_cards_iids(self):
+        return [c.iid for c in self.played_user_cards]
 
     def get_card_by_iid(self, iid):
         if self.selected_card:
@@ -150,8 +168,6 @@ class Game(
             self.turn = 0
         self.played_user_cards = []
         self.active_player.start_turn()
-        if self.debug:
-            self.points -= 1
 
     @property
     def active_player(self):
@@ -248,6 +264,8 @@ class Game(
             c.check_actions(self)
         for c in self.active_player.discard:
             c.check_actions(self)
+        for c in self.played_user_cards:
+            c.check_actions(self)
         if ACTION_KEEP in self.actions:
             for p in self.players:
                 for c in p.phand:
@@ -268,6 +286,51 @@ class Game(
         self.play_abilities(card)
         self.check_tokens_for_card_played(card)
 
+    def log_action(self, card, deck, action, iid):
+        if self.round not in self.log:
+            self.log[self.round] = {}
+            self.log[self.round][self.turn] = []
+
+        self.log[self.round][self.turn].append({
+            'game_actions': self.actions,
+            'performed_action': (card, deck, action, iid),
+            'points': self.active_player.points,
+            'killing_power': self.active_player.killing_power,
+            'buying_power': self.active_player.buying_power,
+            'tokens': self.token,
+            'player_hand': self.active_player.hand_iids,
+            'player_discard': self.active_player.discard_iids,
+            'player_phand': self.active_player.phand_iids,
+            'hand': self.hand_iids,
+            'discard': self.discard_iids,
+            'played_user_cards': self.played_user_cards_iids,
+            'readable_action': '%s on %s' % (ACTION_DICT.get(action), card),
+        })
+
+    def player_can_do_actions(self):
+        if any([c.eligible(self) for c in self.active_player.hand]):
+            print 'playerhand', self.active_player.hand
+        if any([c.eligible(self) for c in self.active_player.phand]):
+            print 'playerphand', self.active_player.phand
+        if any([c.eligible(self) for c in self.hand]):
+            print 'hand', self.hand
+        if any([c.eligible(self) for c in self.phand]):
+            print 'phand', self.phand
+        if any([c.eligible(self) for c in self.discard]):
+            print 'discard', self.discard
+        if any([c.eligible(self) for c in self.played_user_cards]):
+            print 'playedcards', self.played_user_cards
+            for c in self.played_user_cards:
+                print c.actions
+        return (any([c.eligible(self) for c in self.active_player.hand]) or
+            any([c.eligible(self) for c in self.active_player.phand]) or
+            any([c.eligible(self) for c in self.active_player.discard]) or
+            any([c.eligible(self) for c in self.discard]) or
+            any([c.eligible(self) for c in self.hand]) or
+            any([c.eligible(self) for c in self.phand]) or
+            any([c.eligible(self) for c in self.played_user_cards])
+        )
+
     def player_loop(self):
         print_red('remaining points %s' % self.points)
         if self.active_player.active:
@@ -281,6 +344,8 @@ class Game(
 
     def game_loop(self):
         while self.game_active:
+            if self.turn == 0:
+                round += 1
             self.player_loop()
 
 def test_players(game, num_players=2):

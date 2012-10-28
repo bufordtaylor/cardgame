@@ -992,5 +992,12 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.active_player.killing_power, 0)
         self.assertEqual(self.game.active_player.points, meph.instant_worth)
 
+    def test_log(self):
+        self.game.debug = True
+        while self.game.game_active:
+            self.game.normal_action()
+        from pprint import pprint
+        pprint(self.game.log)
+
 if __name__ == '__main__':
     unittest.main()

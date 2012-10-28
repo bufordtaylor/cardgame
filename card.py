@@ -273,10 +273,13 @@ class Card(object):
 
         # we don't want cards in the user's hands to be marked for buy
         # or for kill
-        if id(self) in [id(c) for c in game.active_player.hand]:
+        if self.iid in [c.iid for c in game.active_player.hand]:
             return
 
-        if id(self) in [id(c) for c in game.active_player.phand]:
+        if self.iid in [c.iid for c in game.played_user_cards]:
+            return
+
+        if self.iid in [c.iid for c in game.active_player.phand]:
             if (not game.used_tokens.get(self.abilities) and
                 self.abilities in PERSISTENT_USE_LIST
             ):
@@ -361,6 +364,10 @@ class Card(object):
     @property
     def can_buy(self):
         return self._is_eligible_for_action(ACTION_BUY)
+
+    @property
+    def can_play(self):
+        return self._is_eligible_for_action(ACTION_PLAY)
 
     @property
     def can_kill(self):

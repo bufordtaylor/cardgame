@@ -274,6 +274,7 @@ class AbilitiesMixin(object):
             self._action_perform_defeat(card, deck)
 
         self.active_card = []
+        self.log_action(card, deck, action, iid)
         return card
 
     def action_perform(self, actions, player=None):
@@ -313,6 +314,8 @@ class AbilitiesMixin(object):
 
         if action == ACTION_DEFEAT:
             self._action_perform_defeat(card, deck)
+
+        self.log_action(card, deck, action, iid)
 
     def _action_perform_defeat(self, card, deck):
         if not card.faction == STARTING:

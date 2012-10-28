@@ -42,6 +42,17 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
                 )
                 self.deck.append(card)
 
+    @property
+    def hand_iids(self):
+        return [c.iid for c in self.hand]
+
+    @property
+    def phand_iids(self):
+        return [c.iid for c in self.phand]
+
+    @property
+    def discard_iids(self):
+        return [c.iid for c in self.discard]
 
     def make_selection(self, must=False, this=None, that=None):
         none_choice = ''
@@ -170,7 +181,9 @@ class Computer(Player, ShufflePlayerCardMixin):
                 if c.can_use:
                     return c.iid
 
-            return self.hand[0].iid
+            for c in self.hand:
+                if c.can_play:
+                    return c.iid
 
         if ACTION_ACQUIRE_TO_TOP in self.game.actions:
             for c in self.game.hand:
@@ -253,7 +266,7 @@ class Computer(Player, ShufflePlayerCardMixin):
 
             # fall through to kill cultist anyway
             for idx, c in enumerate(self.game.phand):
-                if c.name == 'cultist':
+                if c.name == 'cultist' and c.can_kill:
                     return c.iid
 
     def make_selection(self, must=False, this=None, that=None):

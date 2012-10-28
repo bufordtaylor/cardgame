@@ -238,8 +238,6 @@ class Computer(Player, ShufflePlayerCardMixin):
                 if c.name == 'cultist' and c.can_defeat:
                     return c.iid
 
-
-
         if ACTION_KILL in self.game.actions:
             # if override, kill cultist
             if hasattr(self.game, '_override_kill') and getattr(self.game, '_override_kill') == 'cultist':

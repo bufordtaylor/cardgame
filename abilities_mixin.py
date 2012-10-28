@@ -69,8 +69,8 @@ class AbilitiesMixin(object):
         self.action_perform([ACTION_DEFEAT])
 
     def acquire_any_center_hero(self, card=None):
-        self.change_action([ACTION_ACQUIRE_TO_TOP])
-        self.can_acquire_card(buying_power=1000)
+        self.set_token('hero_buying_power', 1000, END_OF_ACTION)
+        self.action_perform([ACTION_ACQUIRE_TO_TOP])
 
     def if_lifebound_hero_plus_2_kill(self, card=None):
         add = False
@@ -335,19 +335,3 @@ class AbilitiesMixin(object):
 
         self.play_abilities(card)
         self.check_tokens_for_use_once()
-
-    # XXX TODO this will break, select_card doesn't even exist anymore
-    def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
-        self.set_token('minus_kill', killing_power, END_OF_ACTION)
-        self.select_card(1, where=where, must=False)
-
-    # XXX TODO this will break, select_card doesn't even exist anymore
-    def must_acquire_card(self, where=WHERE_GAME_HAND):
-        self.can_acquire_card(where=where, must=True)
-
-    # XXX TODO this will break, select_card doesn't even exist anymore
-    def can_acquire_card(self,
-        where=WHERE_GAME_HAND, must=False, buying_power=0
-    ):
-        self.set_token('buying_power', buying_power, END_OF_ACTION)
-        self.select_card(1, where=where, must=must)

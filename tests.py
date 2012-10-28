@@ -89,6 +89,7 @@ class TestGame(unittest.TestCase):
             kwargs['msg'] = 'AssertionError: %s\n%s' % (
                 e, self._build_game_state()
             )
+            print kwargs['msg']
             super(TestGame, self).assertTrue(*args, **kwargs)
 
     def test_game_deck(self):
@@ -458,7 +459,7 @@ class TestGame(unittest.TestCase):
         self.game.active_player.buying_power = 4
         self.game.check_cards_eligibility()
         self.assertEqual(card.can_use, True)
-        card = self.game.play_user_card_persistent('t0')
+        self.game.normal_action()
         self.assertEqual(card.can_use, False)
         self.assertEqual(self.game.active_player.buying_power, 0)
         self.assertEqual(self.game.active_player.points, 3)
@@ -606,7 +607,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.active_player.phand), 1)
         self.assertEqual(len(self.game.token), 1)
         self.assertFalse(self.game.extra_turn)
-        card = self.game.play_user_card_persistent('t0')
+        self.game.normal_action()
         self.assertEqual(len(self.game.active_player.phand), 0)
         self.assertEqual(len(self.game.token), 0)
         self.assertTrue(self.game.extra_turn)

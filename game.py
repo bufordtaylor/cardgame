@@ -257,17 +257,6 @@ class Game(
                 for c in p.discard:
                     c.check_actions(self)
 
-    def play_user_card_persistent(self, selection, action=ACTION_USE):
-        card, card_idx = self.sanitize(selection, persistent=True, player_card=True)
-        if not card:
-            return self.handle_inputs()
-        os.system(['clear','cls'][os.name == 'nt'])
-        if action in card.actions:
-            getattr(
-                self,ABILITY_MAP.get(card.abilities)
-            )(card=card, action=action)
-        return card
-
     def play_user_card_effects(self, card):
         self.active_player.killing_power += card.instant_kill
         self.active_player.buying_power += card.instant_buy

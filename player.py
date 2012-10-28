@@ -172,8 +172,22 @@ class Computer(Player, ShufflePlayerCardMixin):
 
             return self.hand[0].iid
 
+        if ACTION_ACQUIRE_TO_TOP in self.game.actions:
+            for c in self.game.hand:
+                if c.can_acquire_to_top:
+                    return c.iid
+
+        if ACTION_DISCARD_FROM_PLAYER_HAND in self.game.actions:
+            return self.hand[0].iid
+
         if ACTION_BANISH_PLAYER_HAND in self.game.actions:
             return self.hand[0].iid
+
+        if ACTION_COPY in self.game.actions:
+            try:
+                return self.game.played_user_cards[0].iid
+            except IndexError:
+                return None
 
         if ACTION_BANISH_CENTER in self.game.actions:
             for idx, c in enumerate(self.game.hand):

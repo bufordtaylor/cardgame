@@ -157,16 +157,6 @@ class Game(
     def active_player(self):
         return self.players[self.turn]
 
-    def must_copy_card(self):
-        self.change_action([ACTION_COPY])
-        self.select_card(num=1, where=WHERE_PLAYED, must=True)
-
-    def can_discard_card(self, num, must=False):
-        self.change_action([ACTION_DISCARD_FROM_PLAYER_HAND])
-        self.select_card(num=num, where=WHERE_PLAYER_HAND, must=must)
-
-    def must_banish_card(self, num, where):
-        self.can_banish_card(num, where, must_banish=True)
 
     def set_token(self, kind, value, end):
         if isinstance( value, (int, long)) and self.token.get(kind):
@@ -175,59 +165,6 @@ class Game(
         else:
             self.token[kind] = value
             self.token_erasers[kind] = end
-
-    def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
-        self.set_token('minus_kill', killing_power, END_OF_ACTION)
-        self.select_card(1, where=where, must=False)
-
-    def must_acquire_card(self, where=WHERE_GAME_HAND):
-        self.can_acquire_card(where=where, must=True)
-
-    def can_acquire_card(self,
-        where=WHERE_GAME_HAND, must=False, buying_power=0
-    ):
-        self.set_token('buying_power', buying_power, END_OF_ACTION)
-        self.select_card(1, where=where, must=must)
-
-    def can_banish_card(self, num, where, must_banish=False):
-        self.select_card(num, where, must_banish)
-
-    def move_card(self, card, card_idx, from_deck):
-
-        if from_deck == WHERE_GAME_HAND:
-            # get_card removes it from deck hand
-            card = self.get_card(card_idx)
-            self.selected_card = card
-            if ACTION_BANISH in self.actions:
-                # banish to game discard deck ACTION_BANISH
-                self.discard.append(card)
-            elif ACTION_DEFEAT in self.actions:
-                self.discard.append(card)
-            elif ACTION_ACQUIRE_TO_TOP in self.actions:
-                self.active_player.deck.append(card)
-            self.draw_card()
-        elif from_deck == WHERE_PLAYED:
-            # used in ACTION_COPY
-            self.selected_card = card
-            self.play_user_card_effects(card)
-        elif from_deck == WHERE_PLAYER_HAND:
-            # get_card removes it from player hand
-            card = self.active_player.get_card(card_idx)
-            self.selected_card = card
-            if ACTION_DISCARD_FROM_PLAYER_HAND in self.actions:
-                # move card to player's discard deck
-                self.active_player.discard.append(card)
-            else:
-                # move card to game discard deck ACTION_BANISH
-                self.discard.append(card)
-        elif from_deck == WHERE_PERSISTENT:
-            # get_card removes it from player hand ACTION_BANISH
-            card = self.active_player.get_card(card_idx, persistent=True)
-            self.selected_card = card
-            # move card from phand to player discard deck
-            self.active_player.discard.append(card)
-
-        self.check_tokens_for_use_once()
 
     def remove_token(self, token):
         try:
@@ -253,22 +190,6 @@ class Game(
                 to_delete.append(k)
         for t in to_delete:
             del self.token_erasers[t]
-
-    def select_card(self, num, where, must=False):
-        """
-        select a card to perform an action on it.
-        num is number of cards to select
-        where is where the card should be selected from
-        must is if a card must be selected vs not having to select one
-        """
-        for x in xrange(num):
-            card, card_idx = self.handle_select_inputs(where, must=must)
-            # they've chosen [n]one here, just move on
-            if not card:
-                self.selected_card = None
-                return
-
-            self.move_card(card, card_idx, from_deck=where)
 
     def change_action(self, actions):
         print 'CHANGING ACTION'

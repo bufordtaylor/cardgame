@@ -322,9 +322,7 @@ class TestGame(unittest.TestCase):
     def test_instant_ability_discard(self):
         self.game.active_player.hand[0] = self._move_card_by_ability(IF_DISCARD_DRAW_TWO)
         card = self.game.normal_action()
-        selected_card = self.game.selected_card
-        self.assertTrue(id(selected_card) in [id(c) for c in self.game.active_player.discard])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
+        self.assertTrue(len(self.game.active_player.discard), 1)
         self.assertTrue(len(self.game.active_player.hand), 6)
 
     def test_instant_ability_copy_no_card(self):
@@ -355,9 +353,7 @@ class TestGame(unittest.TestCase):
         # emulate other card
         self.game.active_player.hand[0] = self._move_card_by_ability(COPY_EFFECT)
         card = self.game.normal_action()
-        selected_card = self.game.selected_card
-        self.assertTrue(id(selected_card) in [id(c) for c in self.game.active_player.discard])
-        self.assertTrue(id(selected_card) not in [id(c) for c in self.game.active_player.hand])
+        self.assertTrue(len(self.game.active_player.discard), 2)
         self.assertTrue(len(self.game.active_player.hand), 7)
 
     def test_kill_eligibility(self):

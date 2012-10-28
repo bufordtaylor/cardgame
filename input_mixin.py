@@ -230,7 +230,13 @@ class InputMixin(object):
         self.change_action(actions)
         self.display_proper_deck(player)
         try:
-            raw_card_selection = int(player.raw_card_selection())
+            raw_input = player.raw_card_selection()
+            # in this case, there is no eligible card to select
+            # therefore nothing can be done
+            if raw_input is None:
+                return (None, None, None, None)
+            else:
+                raw_card_selection = int(raw_input)
         except ValueError:
             print 'must be integer'
             return self.handle_selection_inputs(actions, player)

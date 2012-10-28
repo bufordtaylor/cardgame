@@ -82,18 +82,15 @@ class AbilitiesMixin(object):
 
     def acquire_hero_3_or_less_to_top_of_deck(self, card=None):
         self.set_token('hero_buying_power', 3, END_OF_ACTION)
-        self.change_action([ACTION_ACQUIRE_TO_TOP])
-        card, idx = self.handle_action_acquire_to_top(self.active_player)
-        self.move_card(card, idx, WHERE_GAME_HAND)
+        self.action_perform([ACTION_ACQUIRE_TO_TOP])
 
     def cannot_be_banished_acquire_any_center_card(self, card=None):
         self.acquire_or_defeat_any(card)
 
     def acquire_or_defeat_any(self, card=None):
-        self.change_action([ACTION_ACQUIRE_TO_TOP, ACTION_DEFEAT])
         self.active_player.killing_power += 1000
         self.active_player.buying_power += 1000
-        self.select_card(1, where=WHERE_GAME_HAND, must=False)
+        self.action_perform([ACTION_ACQUIRE_TO_TOP, ACTION_DEFEAT])
         self.active_player.killing_power -= 1000
         self.active_player.buying_power -= 1000
 
@@ -307,4 +304,60 @@ class AbilitiesMixin(object):
         self.active_card = []
         return card
 
+    def action_perform(self, actions, player=None):
+        if player is None:
+            player = self.active_player
+
+        card, deck, action, iid = self.handle_selection_inputs(actions, player)
+        if card:
+            if action in [
+                ACTION_BANISH_PLAYER_HAND,
+                ACTION_BANISH_PLAYER_DISCARD,
+                ACTION_BANISH_CENTER,
+            ]:
+                if deck == DECK_GAME_DECK:
+                    self.remove_card(card, self.hand)
+                elif deck == DECK_PLAYER_DISCARD:
+                    self.remove_card(card, player.discard)
+                elif deck == DECK_PLAYER_HAND:
+                    self.remove_card(card, player.hand)
+                self.discard.append(card)
+
+            if action == ACTION_BANISH_PLAYER_PERSISTENT:
+                self.remove_card(card, player.phand)
+                player.discard.append(card)
+
+            if action == ACTION_DISCARD_FROM_PLAYER_HAND:
+                self.remove_card(card, player.hand)
+                player.discard.append(card)
+
+            if action == ACTION_ACQUIRE_TO_TOP:
+                self.remove_card(card, self.hand)
+                player.deck.append(card)
+
+
+    def must_copy_card(self):
+        self.action_perform([ACTION_COPY])
+
+    def can_discard_card(self, num, must=False):
+        self.action_perform([ACTION_DISCARD_FROM_PLAYER_HAND])
+
+    def must_banish_card(self, num, where):
+        self.can_banish_card(num, where, must_banish=True)
+
+    def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
+        self.set_token('minus_kill', killing_power, END_OF_ACTION)
+        self.select_card(1, where=where, must=False)
+
+    def must_acquire_card(self, where=WHERE_GAME_HAND):
+        self.can_acquire_card(where=where, must=True)
+
+    def can_acquire_card(self,
+        where=WHERE_GAME_HAND, must=False, buying_power=0
+    ):
+        self.set_token('buying_power', buying_power, END_OF_ACTION)
+        self.select_card(1, where=where, must=must)
+
+    def can_banish_card(self, num, where, must_banish=False):
+        self.action_perform([ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD])
 

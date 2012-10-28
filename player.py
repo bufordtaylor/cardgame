@@ -220,11 +220,31 @@ class Computer(Player, ShufflePlayerCardMixin):
                 if c.can_buy:
                     return c.iid
 
+        if ACTION_DEFEAT in self.game.actions:
+            # if override, kill cultist
+            if hasattr(self.game, '_override_kill') and getattr(self.game, '_override_kill') == 'cultist':
+                for idx, c in enumerate(self.game.phand):
+                    if c.name == 'cultist' and c.can_defeat:
+                        delattr(self.game, '_override_kill')
+                        return c.iid
+
+            # kill first available monster
+            for idx, c in enumerate(self.game.hand):
+                if c.can_defeat:
+                    return c.iid
+
+            # fall through to kill cultist anyway
+            for idx, c in enumerate(self.game.phand):
+                if c.name == 'cultist' and c.can_defeat:
+                    return c.iid
+
+
+
         if ACTION_KILL in self.game.actions:
             # if override, kill cultist
             if hasattr(self.game, '_override_kill') and getattr(self.game, '_override_kill') == 'cultist':
                 for idx, c in enumerate(self.game.phand):
-                    if c.name == 'cultist':
+                    if c.name == 'cultist' and c.can_kill:
                         delattr(self.game, '_override_kill')
                         return c.iid
 
@@ -237,7 +257,6 @@ class Computer(Player, ShufflePlayerCardMixin):
             for idx, c in enumerate(self.game.phand):
                 if c.name == 'cultist':
                     return c.iid
-
 
     def make_selection(self, must=False, this=None, that=None):
         selection = 'a'

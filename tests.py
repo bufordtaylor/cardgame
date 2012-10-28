@@ -105,9 +105,6 @@ class TestGame(unittest.TestCase):
         self.assertEquals(self.game.turn, 1)
         self.assertEquals(self.game.active_player.name, 'Player 1')
 
-
-
-
     def test_defeat_or_acquire_persistents(self):
         """
         defeating or acquiring game hand cards adds them to player discard hand
@@ -237,7 +234,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.active_player.buying_power, buying_power - card.buy)
 
 
-        self.game.hand[0] = self._move_card('Avatar of the Fallen')
+        self.game.hand[0] = self._move_card('Samael Trickster')
         # kill a regular game card
         self.game.check_cards_eligibility()
         self.game._force_actions = [ACTION_KILL]
@@ -539,12 +536,12 @@ class TestGame(unittest.TestCase):
 
     def test_per_turn_plus_1_kill_first_monster_defeat_plus_1_point(self):
         self.game.active_player.killing_power = 1000
-        self.game.hand[0] = self._move_card('Avatar of the Fallen')
+        monster = self.game.hand[0] = self._move_card('Samael Trickster')
         self.game.active_player.hand[0] = self._move_card_by_ability(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
         card = self.game.normal_action()
         self.game._force_actions = [ACTION_KILL]
         card = self.game.normal_action()
-        self.assertEqual(self.game.active_player.points, 5)
+        self.assertEqual(self.game.active_player.points, monster.instant_worth + 1)
 
     def test_per_turn_plus_1_buy_first_lifebound_hero_plus_1_point(self):
         self.game.active_player.hand[0] = self._move_card_by_ability(PER_TURN_PLUS_1_BUY_FIRST_LIFEBOUND_HERO_PLUS_1_POINT)
@@ -985,6 +982,15 @@ class TestGame(unittest.TestCase):
         self.game.normal_action()
         self.assertEqual(len(self.game.active_player.phand), 2)
 
+    def test_defeat_card(self):
+        self.game.active_player.hand[0] = self._move_card('Arha Templar')
+        tyrant = self.game.hand[0] = self._move_card('Earth Tyrant')
+        meph = self.game.hand[1] = self._move_card('Mephit')
+        self.assertEqual(self.game.active_player.points, 0)
+        self.game.normal_action()
+        self.assertEqual(len(self.game.discard), 1)
+        self.assertEqual(self.game.active_player.killing_power, 0)
+        self.assertEqual(self.game.active_player.points, meph.instant_worth)
 
 if __name__ == '__main__':
     unittest.main()

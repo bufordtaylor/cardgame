@@ -61,12 +61,12 @@ class AbilitiesMixin(object):
         self.action_perform([ACTION_COPY])
 
     def defeat_monster_lt_4(self, card=None):
-        self.change_action([ACTION_DEFEAT])
-        self.can_defeat_card(killing_power=4)
+        self.set_token('minus_kill', 4, END_OF_ACTION)
+        self.action_perform([ACTION_DEFEAT])
 
     def defeat_monster_lt_6(self, card=None):
-        self.change_action([ACTION_DEFEAT])
-        self.can_defeat_card(killing_power=6)
+        self.set_token('minus_kill', 6, END_OF_ACTION)
+        self.action_perform([ACTION_DEFEAT])
 
     def acquire_any_center_hero(self, card=None):
         self.change_action([ACTION_ACQUIRE_TO_TOP])
@@ -223,7 +223,6 @@ class AbilitiesMixin(object):
         # card is now not in any deck. it is active
         self.active_card.append(card)
 
-
         if action == ACTION_USE:
             getattr(self,ABILITY_MAP.get(card.abilities)
                 )(card=card, action=action)
@@ -272,26 +271,7 @@ class AbilitiesMixin(object):
                 self.active_player.phand.append(card)
 
         if action == ACTION_KILL:
-            if not card.faction == STARTING:
-                self.remove_card(card, self.hand)
-                self.draw_card()
-            else:
-                card.pop_card_from_persistent_game_backup(self)
-
-            kill, buy = card.apply_card_tokens(self)
-            self.remove_token('minus_kill')
-            self.active_player.points += card.instant_worth
-            self.active_player.killing_power -= kill
-
-            if PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT in self.token:
-                self.active_player.points += 1
-                self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
-
-            self.discard.append(card)
-
-            self.play_abilities(card)
-            self.check_tokens_for_use_once()
-
+            self._action_perform_defeat(card, deck)
 
         self.active_card = []
         return card
@@ -331,6 +311,30 @@ class AbilitiesMixin(object):
             self.remove_card(card, self.hand)
             player.deck.append(card)
 
+        if action == ACTION_DEFEAT:
+            self._action_perform_defeat(card, deck)
+
+    def _action_perform_defeat(self, card, deck):
+        if not card.faction == STARTING:
+            self.remove_card(card, self.hand)
+            self.draw_card()
+        else:
+            card.pop_card_from_persistent_game_backup(self)
+
+        kill, buy = card.apply_card_tokens(self)
+        self.remove_token('minus_kill')
+        print 'points', self.active_player.points, card.instant_worth, card
+        self.active_player.points += card.instant_worth
+        self.active_player.killing_power -= kill
+
+        if PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT in self.token:
+            self.active_player.points += 1
+            self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
+
+        self.discard.append(card)
+
+        self.play_abilities(card)
+        self.check_tokens_for_use_once()
 
     # XXX TODO this will break, select_card doesn't even exist anymore
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):

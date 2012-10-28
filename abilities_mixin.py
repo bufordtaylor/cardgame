@@ -297,44 +297,51 @@ class AbilitiesMixin(object):
         return card
 
     def action_perform(self, actions, player=None):
+        """performs all the unusual things like copying, banishing, discarding
+        acquiring, defeating, etc"""
         if player is None:
             player = self.active_player
 
         card, deck, action, iid = self.handle_selection_inputs(actions, player)
-        if card:
-            if action in [
-                ACTION_BANISH_PLAYER_HAND,
-                ACTION_BANISH_PLAYER_DISCARD,
-                ACTION_BANISH_CENTER,
-            ]:
-                if deck == DECK_GAME_DECK:
-                    self.remove_card(card, self.hand)
-                elif deck == DECK_PLAYER_DISCARD:
-                    self.remove_card(card, player.discard)
-                elif deck == DECK_PLAYER_HAND:
-                    self.remove_card(card, player.hand)
-                self.discard.append(card)
+        if not card:
+            return
 
-            if action == ACTION_BANISH_PLAYER_PERSISTENT:
-                self.remove_card(card, player.phand)
-                player.discard.append(card)
-
-            if action == ACTION_DISCARD_FROM_PLAYER_HAND:
-                self.remove_card(card, player.hand)
-                player.discard.append(card)
-
-            if action == ACTION_ACQUIRE_TO_TOP:
+        if action in [
+            ACTION_BANISH_PLAYER_HAND,
+            ACTION_BANISH_PLAYER_DISCARD,
+            ACTION_BANISH_CENTER,
+        ]:
+            if deck == DECK_GAME_DECK:
                 self.remove_card(card, self.hand)
-                player.deck.append(card)
+            elif deck == DECK_PLAYER_DISCARD:
+                self.remove_card(card, player.discard)
+            elif deck == DECK_PLAYER_HAND:
+                self.remove_card(card, player.hand)
+            self.discard.append(card)
+
+        if action == ACTION_BANISH_PLAYER_PERSISTENT:
+            self.remove_card(card, player.phand)
+            player.discard.append(card)
+
+        if action == ACTION_DISCARD_FROM_PLAYER_HAND:
+            self.remove_card(card, player.hand)
+            player.discard.append(card)
+
+        if action == ACTION_ACQUIRE_TO_TOP:
+            self.remove_card(card, self.hand)
+            player.deck.append(card)
 
 
+    # XXX TODO this will break, select_card doesn't even exist anymore
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
         self.set_token('minus_kill', killing_power, END_OF_ACTION)
         self.select_card(1, where=where, must=False)
 
+    # XXX TODO this will break, select_card doesn't even exist anymore
     def must_acquire_card(self, where=WHERE_GAME_HAND):
         self.can_acquire_card(where=where, must=True)
 
+    # XXX TODO this will break, select_card doesn't even exist anymore
     def can_acquire_card(self,
         where=WHERE_GAME_HAND, must=False, buying_power=0
     ):

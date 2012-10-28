@@ -254,6 +254,56 @@ class AbilitiesMixin(object):
                 self.check_cards_eligibility()
             else:
                 self.played_user_cards.append(card)
+
+        if action == ACTION_BUY or action == ACTION_ACQUIRE_TO_PHAND:
+            if not card.faction == STARTING:
+                self.remove_card(card, self.hand)
+                self.draw_card()
+            else:
+                card.pop_card_from_persistent_game_backup(self)
+
+            kill, buy = card.apply_card_tokens(self)
+            self.remove_token('minus_buy')
+            self.active_player.buying_power -= buy
+
+            if card.card_type == CARD_TYPE_PERSISTENT:
+                self.remove_token('minus_construct_buy')
+
+            if (
+                card.in_faction(self, MECHANA) and
+                card.card_type == CARD_TYPE_PERSISTENT
+            ):
+                self.remove_token('minus_mechana_construct_buy')
+
+
+            if action == ACTION_BUY:
+                self.active_player.discard.append(card)
+            if action == ACTION_ACQUIRE_TO_PHAND:
+                self.play_user_card_effects(card)
+                self.active_player.phand.append(card)
+
+        if action == ACTION_KILL:
+            if not card.faction == STARTING:
+                self.remove_card(card, self.hand)
+                self.draw_card()
+            else:
+                card.pop_card_from_persistent_game_backup(self)
+
+            kill, buy = card.apply_card_tokens(self)
+            self.remove_token('minus_kill')
+            self.active_player.points += card.instant_worth
+            self.active_player.killing_power -= kill
+
+            if PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT in self.token:
+                self.active_player.points += 1
+                self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
+
+            self.discard.append(card)
+
+            self.play_abilities(card)
+            self.check_tokens_for_use_once()
+
+
         self.active_card = []
         return card
 

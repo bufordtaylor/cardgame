@@ -41,6 +41,15 @@ def get_card_and_deck(game, iid):
         for c in p.discard:
             if c.iid == iid:
                 return c, DECK_PLAYER_DISCARD
+    for c in game.buy_2_deck:
+        if c.iid == iid:
+            return c, DECK_GAME_PHAND
+    for c in game.buy_3_deck:
+        if c.iid == iid:
+            return c, DECK_GAME_PHAND
+    for c in game.kill_1_deck:
+        if c.iid == iid:
+            return c, DECK_GAME_PHAND
     return None, None
 
 def get_card_by_iid(game, iid):
@@ -135,6 +144,19 @@ class Card(object):
             str = 'STARTING'
         return str
 
+    def pop_card_from_persistent_game_backup(self, game):
+        popped = None
+        if self.cid == STARTING_CARD_BUY_3:
+            popped = game.buy_3_deck.pop()
+            game.phand[0] = game.buy_3_deck[len(game.buy_3_deck)-1]
+        elif self.cid == STARTING_CARD_BUY_2:
+            popped = game.buy_2_deck.pop()
+            game.phand[1] = game.buy_2_deck[len(game.buy_2_deck)-1]
+        else:
+            popped = game.kill_1_deck.pop()
+            game.phand[2] = game.kill_1_deck[len(game.kill_1_deck)-1]
+        return popped
+
     def card_faction(self, color):
         str = (color, 'MONSTER')
         if self.faction == VOID:
@@ -227,6 +249,7 @@ class Card(object):
             if self.card_type == CARD_TYPE_HERO:
                 if game.token.get('hero_buying_power', 0) >= buy:
                     self.actions.append(ACTION_ACQUIRE_TO_TOP)
+
             if self.card_type != CARD_TYPE_MONSTER:
                 if game.token.get('minus_buy', 0) >= buy:
                     self.actions.append(ACTION_ACQUIRE_TO_TOP)
@@ -370,6 +393,10 @@ class Card(object):
     @property
     def can_acquire_to_hand(self):
         return self._is_eligible_for_action(ACTION_ACQUIRE_TO_HAND)
+
+    @property
+    def can_acquire_to_phand(self):
+        return self._is_eligible_for_action(ACTION_ACQUIRE_TO_PHAND)
 
     @property
     def can_banish_player_persistent(self):

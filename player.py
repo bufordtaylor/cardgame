@@ -152,6 +152,12 @@ class Computer(Player, ShufflePlayerCardMixin):
         return display_list[len(display_list) - 1]
 
     def raw_card_selection(self):
+
+        # built in for testing purposes to override an action
+        if hasattr(self.game, '_force_actions'):
+            self.game.actions = self.game._force_actions
+            delattr(self.game, '_force_actions')
+
         if ACTION_KEEP in self.game.actions:
             for card in self.phand:
                 return card.iid
@@ -173,6 +179,51 @@ class Computer(Player, ShufflePlayerCardMixin):
             for idx, c in enumerate(self.game.hand):
                 if c.banishable:
                     return c.iid
+
+        if ACTION_ACQUIRE_TO_PHAND in self.game.actions:
+            for card in self.game.hand:
+                if card.can_acquire_to_phand:
+                    return card.iid
+
+        if ACTION_BUY in self.game.actions:
+            if hasattr(self.game, '_override_buy') and getattr(self.game,'_override_buy') == 'mystic':
+                for idx, c in enumerate(self.game.phand):
+                    if c.name == 'mystic':
+                        delattr(self.game, '_override_buy')
+                        return c.iid
+
+            if hasattr(self, '_override_buy') == 'heavy infantry':
+                for idx, c in enumerate(self.game.phand):
+                    if c.name == 'heavy infantry':
+                        delattr(self.game, '_override_buy')
+                        return c.iid
+
+            for idx, c in enumerate(self.game.hand):
+                if c.can_buy:
+                    return c.iid
+
+            for idx, c in enumerate(self.game.phand):
+                if c.can_buy:
+                    return c.iid
+
+        if ACTION_KILL in self.game.actions:
+            # if override, kill cultist
+            if hasattr(self.game, '_override_kill') and getattr(self.game, '_override_kill') == 'cultist':
+                for idx, c in enumerate(self.game.phand):
+                    if c.name == 'cultist':
+                        delattr(self.game, '_override_kill')
+                        return c.iid
+
+            # kill first available monster
+            for idx, c in enumerate(self.game.hand):
+                if c.can_kill:
+                    return c.iid
+
+            # fall through to kill cultist anyway
+            for idx, c in enumerate(self.game.phand):
+                if c.name == 'cultist':
+                    return c.iid
+
 
     def make_selection(self, must=False, this=None, that=None):
         selection = 'a'

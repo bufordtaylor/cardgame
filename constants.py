@@ -92,6 +92,10 @@ ACTION_NORMAL = [ACTION_BUY, ACTION_KILL, ACTION_PLAY]
 BUY_1 = 'plus 1 buy'
 KILL_1 = 'plus 1 kill'
 
+STARTING_CARD_BUY_3 = 0
+STARTING_CARD_BUY_2 = 1
+STARTING_CARD_KILL_1 = 2
+
 
 # signifies we're done with the action
 END_OF_ACTION = 0

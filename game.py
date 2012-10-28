@@ -47,8 +47,24 @@ class BaseGame(object):
         self.active_card = []
         self.test_deck = test_deck()
         self.deck = deck or self.test_deck
+
+        # make 50 copies of each game persistent and then put them in the
+        # game's persistent hand
+        self.buy_3_deck = []
+        self.buy_2_deck = []
+        self.kill_1_deck = []
         for c in persistant_game_hand:
-            self.phand.append(Card(iid=self.next_iid, **c))
+            for i in xrange(50):
+                if c['cid'] == STARTING_CARD_BUY_3:
+                    self.buy_3_deck.append(Card(iid=self.next_iid, **c))
+                elif c['cid'] == STARTING_CARD_BUY_2:
+                    self.buy_2_deck.append(Card(iid=self.next_iid, **c))
+                elif c['cid'] == STARTING_CARD_KILL_1:
+                    self.kill_1_deck.append(Card(iid=self.next_iid, **c))
+
+        self.phand.append(self.buy_3_deck.pop())
+        self.phand.append(self.buy_2_deck.pop())
+        self.phand.append(self.kill_1_deck.pop())
 
         # players must come after deck and phand is created
         self.players = players or test_players(game=self)
@@ -67,7 +83,7 @@ class BaseGame(object):
 
     @property
     def next_iid(self):
-        cnt = len(self.deck) + len(self.phand)
+        cnt = len(self.deck) + len(self.buy_3_deck) + len(self.buy_2_deck) + len(self.kill_1_deck) + len(self.phand)
         for p in self.players:
             cnt += len(p.deck)
         return cnt
@@ -341,79 +357,6 @@ class Game(
         print_blue('PLAYED CARD %s' % card)
         self.play_abilities(card)
         self.check_tokens_for_card_played(card)
-
-
-    def defeat_or_acquire(self, selection, persistent=False):
-        card, card_idx = self.sanitize(selection, persistent)
-        if not card:
-            return self.handle_inputs()
-        os.system(['clear','cls'][os.name == 'nt'])
-        moved_card = None
-
-        if not card.can_buy and not card.can_kill:
-            print_red('%s - Card not eligible for selection' % card.name)
-            self.debug_counter += 1
-            if self.debug_counter > 5:
-                return None, None
-            return self.handle_inputs()
-
-        if card.card_type == CARD_TYPE_MONSTER:
-            if self.active_player.killing_power >= card.kill:
-                card= self.get_card(card_idx, persistent)
-                moved_card = self.defeat_card(card, persistent)
-                print_blue('KILLED CARD %s' % card)
-            else:
-                print_red(NOT_ENOUGH_KILL)
-                return self.handle_inputs()
-        else:
-            card= self.get_card(card_idx, persistent)
-            moved_card = self.acquire_card(card, persistent)
-        return moved_card
-
-    def acquire_card(self, card, persistent):
-        kill, buy = card.apply_card_tokens(self)
-        self.remove_token('minus_buy')
-        self.active_player.buying_power -= buy
-
-        if card.card_type == CARD_TYPE_PERSISTENT:
-            self.remove_token('minus_construct_buy')
-
-        if card.in_faction(self, MECHANA) and card.card_type == CARD_TYPE_PERSISTENT:
-            self.remove_token('minus_mechana_construct_buy')
-
-        if not persistent:
-            self.draw_card()
-
-        if card.move_to == WHERE_PLAYER_PERSISTENT:
-            self.selected_card = card
-            card.move_to = None
-            self.play_user_card_effects(card)
-            self.active_player.phand.append(card)
-        else:
-            # place acquired card in player's discard deck
-            self.active_player.discard.append(card)
-        return card
-
-    def defeat_card(self, card, persistent):
-        kill, buy = card.apply_card_tokens(self)
-        self.remove_token('minus_kill')
-        self.active_player.points += card.instant_worth
-        self.active_player.killing_power -= kill
-
-        if PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT in self.token:
-            self.active_player.points += 1
-            self.use_token(PER_TURN_PLUS_1_KILL_FIRST_MONSTER_DEFEAT_PLUS_1_POINT)
-
-        self.selected_card = card
-        if not persistent:
-            self.draw_card()
-
-        if not persistent:
-            self.discard.append(self.selected_card)
-
-        self.play_abilities(card)
-        self.check_tokens_for_use_once()
-        return card
 
     def player_loop(self):
         print_red('remaining points %s' % self.points)

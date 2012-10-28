@@ -57,6 +57,7 @@ kill_1 = {
 
 persistant_game_hand = [buy_3, buy_2, kill_1]
 
+
 starter_cards = [
     {
         'cid': 3,

@@ -263,7 +263,10 @@ class InputMixin(object):
             self.print_user_hand()
         if ACTION_COPY in self.actions:
             self.print_user_played_cards()
-        if ACTION_ACQUIRE_TO_TOP in self.actions:
+        if (
+            ACTION_ACQUIRE_TO_TOP in self.actions or
+            ACTION_ACQUIRE_TO_PHAND in self.actions
+        ):
             self.print_hand()
             self.print_phand()
         if ACTION_THIS_OR_THAT in self.actions:

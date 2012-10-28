@@ -37,7 +37,7 @@ class AbilitiesMixin(object):
             self.active_player.draw_cards(num=1)
 
     def if_discard_draw_two(self, card=None):
-        self.can_discard_card(num=1)
+        self.action_perform([ACTION_DISCARD_FROM_PLAYER_HAND])
         if self.selected_card:
             self.draw_2()
 
@@ -58,7 +58,7 @@ class AbilitiesMixin(object):
             self.set_token(card.abilities, card, END_OF_TURN)
 
     def copy_effect(self, card=None):
-        self.must_copy_card()
+        self.action_perform([ACTION_COPY])
 
     def defeat_monster_lt_4(self, card=None):
         self.change_action([ACTION_DEFEAT])
@@ -115,22 +115,14 @@ class AbilitiesMixin(object):
         self.set_token('minus_construct_buy', 1, END_OF_TURN)
 
     def can_banish_1_hand_or_discard(self, card=None):
-        self.change_action(
-            [ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD]
-        )
-        self.can_banish_card(num=1, where=None)
+        self.action_perform([ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD])
 
     def can_banish_1_hand_or_discard_and_center(self, card=None):
-        self.change_action(
-            [ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD]
-        )
-        self.can_banish_card(num=1, where=None)
-        self.change_action([ACTION_BANISH])
-        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
+        self.can_banish_1_hand_or_discard()
+        self.can_banish_1_center()
 
     def can_banish_1_center(self, card=None):
-        self.change_action([ACTION_BANISH])
-        self.can_banish_card(num=1, where=WHERE_GAME_HAND)
+        self.action_perform([ACTION_BANISH])
 
 
     def opponents_destroy_1_construct(self, card=None):
@@ -336,15 +328,6 @@ class AbilitiesMixin(object):
                 player.deck.append(card)
 
 
-    def must_copy_card(self):
-        self.action_perform([ACTION_COPY])
-
-    def can_discard_card(self, num, must=False):
-        self.action_perform([ACTION_DISCARD_FROM_PLAYER_HAND])
-
-    def must_banish_card(self, num, where):
-        self.can_banish_card(num, where, must_banish=True)
-
     def can_defeat_card(self, where=WHERE_GAME_HAND, killing_power=0):
         self.set_token('minus_kill', killing_power, END_OF_ACTION)
         self.select_card(1, where=where, must=False)
@@ -357,7 +340,3 @@ class AbilitiesMixin(object):
     ):
         self.set_token('buying_power', buying_power, END_OF_ACTION)
         self.select_card(1, where=where, must=must)
-
-    def can_banish_card(self, num, where, must_banish=False):
-        self.action_perform([ACTION_BANISH_PLAYER_HAND, ACTION_BANISH_PLAYER_DISCARD])
-

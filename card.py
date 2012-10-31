@@ -279,6 +279,9 @@ class Card(object):
         if self.iid in [c.iid for c in game.played_user_cards]:
             return
 
+        if self.iid in [c.iid for c in game.active_player.discard]:
+            return
+
         if self.iid in [c.iid for c in game.active_player.phand]:
             if (not game.used_tokens.get(self.abilities) and
                 self.abilities in PERSISTENT_USE_LIST

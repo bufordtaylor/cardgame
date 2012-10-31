@@ -13,10 +13,15 @@ class SimulateGame(Game):
             self.normal_action()
         else:
             self.next_player_turn()
-            if self.points <= 0:
-                self.game_active = False
-                print_red('-----GAME OVER------')
-                self.print_results()
+            if self.num_turns % len(self.players) == 0:
+                if self.debug:
+                    if self.round > 0:
+                        self.game_active = False
+                self.round += 1
+                if self.points <= 0:
+                    self.game_active = False
+                    print_red('-----GAME OVER------')
+                    self.print_results()
 
 def test_players(game, num_players=2):
     players = []

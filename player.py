@@ -140,6 +140,8 @@ class Player(BasePlayer, ShufflePlayerCardMixin):
 
     def select_card_action(self, action_list=None):
         input_string = ['deselect']
+        if action_list == ACTION_NORMAL:
+            input_string.append('end turn')
         for k,v in ACTION_DICT_DISPLAY.iteritems():
             if k in action_list:
                 input_string.append(v)

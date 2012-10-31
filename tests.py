@@ -994,8 +994,7 @@ class TestGame(unittest.TestCase):
 
     def test_log(self):
         self.game.debug = True
-        while self.game.game_active:
-            self.game.normal_action()
+        self.game.game_loop()
         from pprint import pprint
         pprint(self.game.log)
 

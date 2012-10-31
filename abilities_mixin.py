@@ -220,6 +220,9 @@ class AbilitiesMixin(object):
         card, deck, action, iid = self.handle_selection_inputs(
             ACTION_NORMAL, self.active_player)
 
+        if not self.active_player.active:
+            return
+
         # card is now not in any deck. it is active
         self.active_card.append(card)
 

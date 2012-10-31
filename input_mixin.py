@@ -54,17 +54,19 @@ class InputMixin(object):
 
     def handle_selection_inputs(self, actions, player):
         self.change_action(actions)
-        print 'here'
         if self.debug:
-            print 0
+            print 'debug', actions == ACTION_NORMAL, self.player_can_do_actions(), player
             if not self.player_can_do_actions():
-                print 1
-                self.game_active = False
+                player.end_turn()
                 return (None, None, None, None)
 
         self.display_proper_deck(player)
         try:
             raw_input = player.raw_card_selection()
+
+            if raw_input == 'end turn':
+                player.end_turn()
+                return (None, None, None, None)
             # in this case, there is no eligible card to select
             # therefore nothing can be done
             if raw_input is None:
@@ -75,6 +77,7 @@ class InputMixin(object):
         except ValueError:
             print 'must be integer'
             return self.handle_selection_inputs(actions, player)
+
 
         card, deck, action, iid = self.select_card_for_action(
             raw_card_selection, player

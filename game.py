@@ -34,6 +34,7 @@ class BaseGame(object):
     active_card = None
     extra_turn = False
     round = 0
+    num_turns = 0
 
     def __init__(self, points, players=None, deck=None):
         self.log = {}
@@ -164,6 +165,7 @@ class Game(
             return
 
         self.turn += 1
+        self.num_turns += 1
         if self.turn >= len(self.players):
             self.turn = 0
         self.played_user_cards = []
@@ -289,8 +291,10 @@ class Game(
     def log_action(self, card, deck, action, iid):
         if self.round not in self.log:
             self.log[self.round] = {}
+        if self.turn not in self.log[self.round]:
             self.log[self.round][self.turn] = []
 
+        print self.round, self.turn
         self.log[self.round][self.turn].append({
             'game_actions': self.actions,
             'performed_action': (card, deck, action, iid),
@@ -312,6 +316,8 @@ class Game(
             print 'playerhand', self.active_player.hand
         if any([c.eligible(self) for c in self.active_player.phand]):
             print 'playerphand', self.active_player.phand
+        if any([c.eligible(self) for c in self.active_player.discard]):
+            print 'discard', self.active_player.discard
         if any([c.eligible(self) for c in self.hand]):
             print 'hand', self.hand
         if any([c.eligible(self) for c in self.phand]):
@@ -344,8 +350,6 @@ class Game(
 
     def game_loop(self):
         while self.game_active:
-            if self.turn == 0:
-                round += 1
             self.player_loop()
 
 def test_players(game, num_players=2):

@@ -15,7 +15,7 @@ class SimulateGame(Game):
             self.next_player_turn()
             if self.num_turns % len(self.players) == 0:
                 if self.debug:
-                    if self.round > 0:
+                    if self.round > 15:
                         self.game_active = False
                 self.round += 1
                 if self.points <= 0:

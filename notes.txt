@@ -17,4 +17,6 @@ presidents
 
 
 
+if you aqcuire too many mystics, game crashes
+
 

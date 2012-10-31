@@ -231,6 +231,9 @@ class Computer(Player, ShufflePlayerCardMixin):
                 if c.can_buy:
                     return c.iid
 
+            if len(self.game.buy_3_deck) == 1 or len(self.game.buy_2_deck) == 1:
+                return None
+
             for idx, c in enumerate(self.game.phand):
                 if c.can_buy:
                     return c.iid
@@ -247,6 +250,9 @@ class Computer(Player, ShufflePlayerCardMixin):
             for idx, c in enumerate(self.game.hand):
                 if c.can_defeat:
                     return c.iid
+
+            if len(self.game.kill_1_deck) == 1:
+                return None
 
             # fall through to kill cultist anyway
             for idx, c in enumerate(self.game.phand):
@@ -265,6 +271,9 @@ class Computer(Player, ShufflePlayerCardMixin):
             for idx, c in enumerate(self.game.hand):
                 if c.can_kill:
                     return c.iid
+
+            if len(self.game.kill_1_deck) == 1:
+                return None
 
             # fall through to kill cultist anyway
             for idx, c in enumerate(self.game.phand):

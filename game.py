@@ -297,7 +297,7 @@ class Game(
         print self.round, self.turn
         self.log[self.round][self.turn].append({
             'game_actions': self.actions,
-            'performed_action': (card, deck, action, iid),
+            'performed_action': (str(card), deck, action, iid),
             'points': self.active_player.points,
             'killing_power': self.active_player.killing_power,
             'buying_power': self.active_player.buying_power,
